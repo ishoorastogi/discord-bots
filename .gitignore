@@ -7,3 +7,6 @@ npm-debug.log*
 logs/
 
 shared/config/env.js
+
+bots/internships/data/seen-jobs.json
+bots/internships/data/seen-jobs.json.tmp
