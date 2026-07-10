@@ -10,6 +10,11 @@ function getEnv(name) {
     return value;
 }
 
+function getOptionalEnv(name) {
+    return process.env[name] || undefined;
+}
+
 module.exports = {
-    getEnv
+    getEnv,
+    getOptionalEnv,
 };
