@@ -1,5 +1,7 @@
-# Environment Files
-.env
-
-#Node Modules
 node_modules/
+.env
+.env.*
+!.env.example
+.DS_Store
+npm-debug.log*
+logs/
