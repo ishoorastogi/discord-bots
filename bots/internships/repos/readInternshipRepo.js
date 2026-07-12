@@ -1,7 +1,7 @@
 const { createGitHubClient } = require("../../../shared/github/githubClient");
 const { loadRepositoryConfig } = require("../config");
 
-async function readInternshipRepository() {
+async function readInternshipRepo() {
     const github = createGitHubClient();
     const repository = loadRepositoryConfig();
 
@@ -43,5 +43,5 @@ async function readInternshipRepository() {
 }
 
 module.exports = {
-    readInternshipRepository,
+    readInternshipRepo,
 };
