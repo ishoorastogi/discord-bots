@@ -5,7 +5,9 @@
   "main": "bots/internships/index.js",
   "scripts": {
     "start:internships": "node bots/internships/index.js",
-    "dev:internships": "node --watch bots/internships/index.js"
+    "dev:internships": "node --watch bots/internships/index.js",
+    "test:internship-content": "node bots/internships/repos/tests/testRepoContent.js",
+    "test:internship-repo": "node bots/internships/repos/tests/testRepoConnection.js"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",

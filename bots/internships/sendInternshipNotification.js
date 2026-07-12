@@ -1,7 +1,8 @@
 const { EmbedBuilder } = require("discord.js");
 
 const { loadConfig } = require("./config");
-const { explainDiscordError } = require("./logger");
+const { sendMessage } = require("../../shared/discord/sendMessage");
+const { explainDiscordError } = require("./discordErrors");
 
 const REQUIRED_FIELDS = ["company", "role"];
 
@@ -24,40 +25,13 @@ function validateInternship(internship) {
 async function sendInternshipNotification(client, internship) {
   validateInternship(internship);
 
-  if (!client || !client.channels || typeof client.channels.fetch !== "function") {
-    throw new Error("Internship notification requires a logged-in Discord client.");
-  }
-
   const { internshipChannelId } = loadConfig();
-  const channel = await fetchConfiguredChannel(client, internshipChannelId);
-  assertSendableChannel(channel);
-
   const embed = buildInternshipEmbed(internship);
 
   try {
-    return await channel.send({ embeds: [embed] });
+    return await sendMessage(client, internshipChannelId, { embeds: [embed] });
   } catch (error) {
     const wrappedError = new Error(`Failed to send internship notification. ${explainDiscordError(error)}`);
-    wrappedError.code = error.code;
-    wrappedError.status = error.status;
-    wrappedError.cause = error;
-    throw wrappedError;
-  }
-}
-
-async function fetchConfiguredChannel(client, channelId) {
-  try {
-    const channel = await client.channels.fetch(channelId);
-
-    if (!channel) {
-      const error = new Error("Discord returned no channel for the configured internship channel ID.");
-      error.code = 10003;
-      throw error;
-    }
-
-    return channel;
-  } catch (error) {
-    const wrappedError = new Error(`Failed to fetch internship notification channel. ${explainDiscordError(error)}`);
     wrappedError.code = error.code;
     wrappedError.status = error.status;
     wrappedError.cause = error;
@@ -106,28 +80,6 @@ function addField(embed, name, value) {
   });
 }
 
-function assertSendableChannel(channel) {
-  if (!channel) {
-    throw new Error("Cannot send internship notification because the Discord channel was not found.");
-  }
-
-  if (typeof channel.isTextBased !== "function" || !channel.isTextBased()) {
-    throw new Error("Cannot send internship notification because the configured channel is not text-based.");
-  }
-
-  if (!isSendable(channel)) {
-    throw new Error("Cannot send internship notification because the configured channel is not sendable.");
-  }
-}
-
-function isSendable(channel) {
-  if (typeof channel.isSendable === "function") {
-    return channel.isSendable();
-  }
-
-  return typeof channel.send === "function";
-}
-
 function hasText(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
@@ -143,5 +95,4 @@ function isValidUrl(value) {
 
 module.exports = sendInternshipNotification;
 module.exports.buildInternshipEmbed = buildInternshipEmbed;
-module.exports.fetchConfiguredChannel = fetchConfiguredChannel;
 module.exports.validateInternship = validateInternship;

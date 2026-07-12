@@ -1,32 +1,16 @@
-const path = require("path");
-const dotenv = require("dotenv");
 const cron = require("node-cron");
 
-const { logInfo, logWarn } = require("./logger");
+const { getEnv, getOptionalEnv } = require("../../shared/config/env");
+const { logInfo, logWarn } = require("../../shared/utils/logger");
 
-dotenv.config({
-  path: path.resolve(__dirname, "../../.env"),
-  quiet: true,
-});
+function getOptionalEnvWithDefault(name, defaultValue = "") {
+  const value = getOptionalEnv(name);
 
-function getRequiredEnv(name) {
-  const value = process.env[name];
-
-  if (!value || !value.trim()) {
-    throw new Error(`Missing required environment variable: ${name}`);
-  }
-
-  return value.trim();
-}
-
-function getOptionalEnv(name, defaultValue = "") {
-  const value = process.env[name];
-
-  if (!value || !value.trim()) {
+  if (typeof value === "undefined") {
     return defaultValue;
   }
 
-  return value.trim();
+  return value;
 }
 
 function parseBoolean(value, defaultValue = false) {
@@ -45,6 +29,20 @@ function parseBoolean(value, defaultValue = false) {
   }
 
   return defaultValue;
+}
+
+function parsePositiveInteger(value, defaultValue) {
+  if (typeof value !== "string" || !value.trim()) {
+    return defaultValue;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return defaultValue;
+  }
+
+  return parsed;
 }
 
 function parseGreenhouseBoards(value) {
@@ -85,6 +83,24 @@ function parseGreenhouseBoards(value) {
     });
 }
 
+function loadRepositoryConfig() {
+  return {
+    owner: getEnv("INTERNSHIP_REPO_OWNER"),
+    repo: getEnv("INTERNSHIP_REPO_NAME"),
+    branch: getEnv("INTERNSHIP_REPO_BRANCH"),
+    path: getEnv("INTERNSHIP_REPO_PATH"),
+  };
+}
+
+function loadOptionalRepositoryConfig() {
+  return {
+    owner: getOptionalEnv("INTERNSHIP_REPO_OWNER"),
+    repo: getOptionalEnv("INTERNSHIP_REPO_NAME"),
+    branch: getOptionalEnv("INTERNSHIP_REPO_BRANCH"),
+    path: getOptionalEnv("INTERNSHIP_REPO_PATH"),
+  };
+}
+
 function loadConfig() {
   const greenhouseBoards = parseGreenhouseBoards(
     getOptionalEnv("GREENHOUSE_BOARDS")
@@ -94,7 +110,7 @@ function loadConfig() {
     logWarn("No Greenhouse boards configured.");
   }
 
-  const cronSchedule = getOptionalEnv(
+  const cronSchedule = getOptionalEnvWithDefault(
     "INTERNSHIP_CRON_SCHEDULE",
     "0 8 * * *"
   );
@@ -106,26 +122,31 @@ function loadConfig() {
   }
 
   const config = {
-    discordToken: getRequiredEnv("DISCORD_TOKEN"),
-    internshipChannelId: getRequiredEnv(
+    discordToken: getEnv("DISCORD_TOKEN"),
+    internshipChannelId: getEnv(
       "INTERNSHIP_CHANNEL_ID"
     ),
 
+    repository: loadOptionalRepositoryConfig(),
     greenhouseBoards,
     cronSchedule,
+    pollIntervalMinutes: parsePositiveInteger(
+      getOptionalEnv("INTERNSHIP_POLL_INTERVAL_MINUTES"),
+      30
+    ),
 
-    timezone: getOptionalEnv(
+    timezone: getOptionalEnvWithDefault(
       "INTERNSHIP_TIMEZONE",
       "America/Chicago"
     ),
 
     runOnStartup: parseBoolean(
-      getOptionalEnv("RUN_ON_STARTUP", "true"),
+      getOptionalEnvWithDefault("RUN_ON_STARTUP", "true"),
       true
     ),
 
     sendStartupTestMessage: parseBoolean(
-      getOptionalEnv(
+      getOptionalEnvWithDefault(
         "SEND_STARTUP_TEST_MESSAGE",
         "false"
       ),
@@ -140,6 +161,8 @@ function loadConfig() {
 
 module.exports = {
   loadConfig,
+  loadRepositoryConfig,
   parseBoolean,
   parseGreenhouseBoards,
+  parsePositiveInteger,
 };

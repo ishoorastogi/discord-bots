@@ -1,7 +1,7 @@
 const { fetchGreenhouseJobs } = require("../sources/greenhouse");
 const { filterInternships } = require("./internshipFilter");
 const sendInternshipNotification = require("../sendInternshipNotification");
-const { logInfo, logWarn, logError } = require("../logger");
+const { logInfo, logWarn, logError } = require("../../../shared/utils/logger");
 
 class InternshipPoller {
     constructor(client, config, seenJobsStore) {

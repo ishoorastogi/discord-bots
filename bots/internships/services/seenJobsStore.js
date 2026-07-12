@@ -1,7 +1,7 @@
 const fs = require("fs/promises");
 const path = require("path");
 
-const { logWarn } = require("../logger");
+const { logWarn } = require("../../../shared/utils/logger");
 
 const DEFAULT_RETENTION_DAYS = 90;
 

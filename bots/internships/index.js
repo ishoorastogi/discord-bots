@@ -1,12 +1,14 @@
-const { Client, Events, GatewayIntentBits } = require("discord.js");
+const { Events } = require("discord.js");
 
 const { loadConfig } = require("./config");
+const { createClient } = require("../../shared/discord/createClient");
+const { sendMessage } = require("../../shared/discord/sendMessage");
 const {
-  explainDiscordError,
   logError,
   logInfo,
   logWarn,
-} = require("./logger");
+} = require("../../shared/utils/logger");
+const { explainDiscordError } = require("./discordErrors");
 
 let client;
 let isShuttingDown = false;
@@ -31,16 +33,17 @@ process.on("SIGTERM", () => {
 async function main() {
   const config = loadConfig();
 
-  client = new Client({
-    intents: [GatewayIntentBits.Guilds],
-  });
+  client = createClient();
 
   client.once(Events.ClientReady, async (readyClient) => {
     logInfo(`Logged in as ${readyClient.user.tag}.`);
 
     try {
-      const channel = await fetchInternshipChannel(readyClient, config.internshipChannelId);
-      await sendStartupMessage(channel);
+      await sendMessage(
+        readyClient,
+        config.internshipChannelId,
+        "Internship job bot is online. Internship notifications will be posted in this channel."
+      );
       logInfo("Startup test message sent successfully.");
     } catch (error) {
       logError(explainDiscordError(error), error);
@@ -59,50 +62,6 @@ async function main() {
     logError(explainDiscordError(error), error);
     await shutdown(1);
   }
-}
-
-async function fetchInternshipChannel(readyClient, channelId) {
-  let channel;
-
-  try {
-    channel = await readyClient.channels.fetch(channelId);
-  } catch (error) {
-    throw error;
-  }
-
-  if (!channel) {
-    const error = new Error("Discord returned no channel for the configured internship channel ID.");
-    error.code = 10003;
-    throw error;
-  }
-
-  if (typeof channel.isTextBased !== "function" || !channel.isTextBased()) {
-    throw new Error("Configured internship channel is not text-based.");
-  }
-
-  if (!isSendable(channel)) {
-    throw new Error("Configured internship channel is not sendable by this client.");
-  }
-
-  logInfo("Internship channel fetched and validated.");
-
-  return channel;
-}
-
-async function sendStartupMessage(channel) {
-  try {
-    return await channel.send("Internship job bot is online. Internship notifications will be posted in this channel.");
-  } catch (error) {
-    throw error;
-  }
-}
-
-function isSendable(channel) {
-  if (typeof channel.isSendable === "function") {
-    return channel.isSendable();
-  }
-
-  return typeof channel.send === "function";
 }
 
 async function shutdown(exitCode = 0, reason) {

@@ -1,49 +1,9 @@
-function logInfo(message) {
-  console.log(`[INFO] ${message}`);
-}
-
-function logWarn(message) {
-  console.warn(`[WARN] ${message}`);
-}
-
-function logError(message, error) {
-  console.error(`[ERROR] ${message}`);
-
-  if (error) {
-    const details = formatError(error);
-
-    if (details) {
-      console.error(`[ERROR] ${details}`);
-    }
-  }
-}
-
-function formatError(error) {
-  if (!error) {
-    return "";
-  }
-
-  const parts = [];
-
-  if (error.name) {
-    parts.push(`name=${error.name}`);
-  }
-
-  if (error.code) {
-    parts.push(`code=${error.code}`);
-  }
-
-  if (error.status) {
-    parts.push(`status=${error.status}`);
-  }
-
-  if (error.message) {
-    parts.push(`message=${error.message}`);
-  }
-
-  return parts.join(" ");
-}
-
+/**
+ * Converts known Discord errors into internship bot operator guidance.
+ *
+ * @param {Error & { code?: string|number }} error - Discord error.
+ * @returns {string} Human-readable error explanation.
+ */
 function explainDiscordError(error) {
   if (!error) {
     return "Unknown Discord error.";
@@ -70,7 +30,4 @@ function explainDiscordError(error) {
 
 module.exports = {
   explainDiscordError,
-  logError,
-  logInfo,
-  logWarn,
 };
