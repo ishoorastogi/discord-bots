@@ -1,89 +1,93 @@
+const cron = require("node-cron");
 const { Events } = require("discord.js");
 
-const { loadConfig } = require("./config");
-const { createClient } = require("../../shared/discord/createClient");
-const { sendMessage } = require("../../shared/discord/sendMessage");
 const {
-  logError,
+  isMuted,
+} = require("./services/botState");
+
+const {
+  handleMentionCommand,
+} = require("./services/commands/handleMentionCommand");
+
+const {
+  createClient,
+} = require("../../shared/discord/createClient");
+
+const {
   logInfo,
-  logWarn,
+  logError,
 } = require("../../shared/utils/logger");
-const { explainDiscordError } = require("./discordErrors");
 
-let client;
-let isShuttingDown = false;
+const {
+  loadConfig,
+} = require("./config");
 
-process.on("unhandledRejection", (error) => {
-  logError("Unhandled promise rejection.", error);
-});
+const {
+  runInternshipDigest,
+} = require("./services/runInternshipDigest");
 
-process.on("uncaughtException", (error) => {
-  logError("Uncaught exception.", error);
-  void shutdown(1);
-});
+const config = loadConfig();
+const client = createClient();
 
-process.on("SIGINT", () => {
-  void shutdown(0, "SIGINT received.");
-});
-
-process.on("SIGTERM", () => {
-  void shutdown(0, "SIGTERM received.");
-});
-
-async function main() {
-  const config = loadConfig();
-
-  client = createClient();
-
-  client.once(Events.ClientReady, async (readyClient) => {
-    logInfo(`Logged in as ${readyClient.user.tag}.`);
-
-    try {
-      await sendMessage(
-        readyClient,
-        config.internshipChannelId,
-        "Internship job bot is online. Internship notifications will be posted in this channel."
-      );
-      logInfo("Startup test message sent successfully.");
-    } catch (error) {
-      logError(explainDiscordError(error), error);
-    }
-  });
-
-  client.on("error", (error) => {
-    logError("Discord client error.", error);
-  });
-
-  logInfo("Logging in to Discord.");
-
+async function runDigest() {
   try {
-    await client.login(config.discordToken);
+    if (await isMuted()) {
+      logInfo(
+        "Internship digest skipped because the bot is muted."
+      );
+      return;
+    }
+
+    const internships = await runInternshipDigest({
+      client,
+      channelId: config.internshipChannelId,
+      limit: 5,
+    });
+
+    logInfo(
+      `Sent ${internships.length} internships to Discord.`
+    );
   } catch (error) {
-    logError(explainDiscordError(error), error);
-    await shutdown(1);
+    logError(
+      "Failed to run internship digest",
+      error
+    );
   }
 }
 
-async function shutdown(exitCode = 0, reason) {
-  if (isShuttingDown) {
-    return;
+client.once(Events.ClientReady, async (readyClient) => {
+  logInfo(
+    `Logged in as ${readyClient.user.tag}`
+  );
+
+  cron.schedule(
+    config.cronSchedule,
+    runDigest,
+    {
+      timezone: config.timezone,
+    }
+  );
+
+  logInfo(
+    `Internship digest scheduled: ${config.cronSchedule} (${config.timezone})`
+  );
+
+  if (config.runOnStartup) {
+    logInfo("RUN_ON_STARTUP enabled. Running internship digest.");
+
+    await runDigest();
   }
-
-  isShuttingDown = true;
-
-  if (reason) {
-    logWarn(reason);
-  }
-
-  if (client) {
-    logInfo("Destroying Discord client.");
-    client.destroy();
-  }
-
-  process.exitCode = exitCode;
-}
-
-void main().catch(async (error) => {
-  logError("Internship bot failed to start.", error);
-  await shutdown(1);
 });
+
+client.on("error", (error) => {
+  logError("Discord client error", error);
+});
+
+client.on(Events.MessageCreate, async (message) => {
+  await handleMentionCommand(
+    message,
+    client
+  );
+});
+
+client.login(config.discordToken);

@@ -1,98 +1,98 @@
 const { EmbedBuilder } = require("discord.js");
 
-const { loadConfig } = require("./config");
-const { sendMessage } = require("../../shared/discord/sendMessage");
-const { explainDiscordError } = require("./discordErrors");
+const {
+    sendMessage,
+} = require("../../shared/discord/sendMessage");
 
-const REQUIRED_FIELDS = ["company", "role"];
-
-function validateInternship(internship) {
-  if (!internship || typeof internship !== "object") {
-    throw new Error("Internship notification requires an internship object.");
-  }
-
-  for (const field of REQUIRED_FIELDS) {
-    if (!hasText(internship[field])) {
-      throw new Error(`Internship notification missing required field: ${field}`);
+/**
+ * Builds a Discord embed containing the selected internships.
+ *
+ * @param {Array<{
+ *   company: string,
+ *   role: string,
+ *   location: string,
+ *   applicationUrl: string,
+ *   datePosted: string
+ * }>} internships
+ * @returns {EmbedBuilder}
+ */
+function buildInternshipEmbed(internships) {
+    if (!Array.isArray(internships)) {
+        throw new TypeError(
+            "buildInternshipEmbed requires an array of internships."
+        );
     }
-  }
 
-  if (internship.url && !isValidUrl(internship.url)) {
-    throw new Error("Internship notification has an invalid application URL.");
-  }
+    if (internships.length === 0) {
+        throw new Error(
+            "Cannot build an internship notification with no internships."
+        );
+    }
+
+    const embed = new EmbedBuilder()
+        .setTitle("Top Internship Openings")
+        .setDescription(
+            "Here are the newest available internship listings."
+        )
+        .setTimestamp()
+        .setFooter({
+            text: "Summer 2027 Internship Bot",
+        });
+
+    internships.forEach((internship, index) => {
+        const location =
+            internship.location || "Location not provided";
+
+        const datePosted =
+            internship.datePosted || "Date not provided";
+
+        embed.addFields({
+            name:
+                `${index + 1}. ${internship.company} — ` +
+                internship.role,
+            value:
+                `**Location:** ${location}\n` +
+                `**Posted:** ${datePosted}\n` +
+                `[Apply here](${internship.applicationUrl})`,
+        });
+    });
+
+    return embed;
 }
 
-async function sendInternshipNotification(client, internship) {
-  validateInternship(internship);
+/**
+ * Sends the internship digest to Discord.
+ *
+ * @param {import("discord.js").Client} client
+ * @param {string} channelId
+ * @param {Array<object>} internships
+ * @returns {Promise<import("discord.js").Message>}
+ */
+async function sendInternshipNotification(
+    client,
+    channelId,
+    internships
+) {
+    if (!client) {
+        throw new Error(
+            "sendInternshipNotification requires a Discord client."
+        );
+    }
 
-  const { internshipChannelId } = loadConfig();
-  const embed = buildInternshipEmbed(internship);
+    if (typeof channelId !== "string" || channelId.trim() === "") {
+        throw new Error(
+            "sendInternshipNotification requires a channel ID."
+        );
+    }
 
-  try {
-    return await sendMessage(client, internshipChannelId, { embeds: [embed] });
-  } catch (error) {
-    const wrappedError = new Error(`Failed to send internship notification. ${explainDiscordError(error)}`);
-    wrappedError.code = error.code;
-    wrappedError.status = error.status;
-    wrappedError.cause = error;
-    throw wrappedError;
-  }
+    const embed = buildInternshipEmbed(internships);
+
+    return sendMessage(client, channelId, {
+        embeds: [embed],
+    });
 }
 
-function buildInternshipEmbed(internship) {
-  const postedAt = internship.postedAt ? new Date(internship.postedAt) : undefined;
-  const embed = new EmbedBuilder()
-    .setColor(0x2f855a)
-    .setTitle(`${internship.company} - ${internship.role}`)
-    .setTimestamp(new Date());
-
-  if (hasText(internship.url)) {
-    embed.setURL(internship.url.trim());
-  }
-
-  addField(embed, "Company", internship.company);
-  addField(embed, "Role", internship.role);
-  addField(embed, "Location", internship.location);
-  addField(embed, "Source", internship.source);
-
-  if (postedAt && !Number.isNaN(postedAt.getTime())) {
-    addField(embed, "Posted", postedAt.toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }));
-  }
-
-  addField(embed, "Apply", internship.url);
-
-  return embed;
-}
-
-function addField(embed, name, value) {
-  if (!hasText(value)) {
-    return;
-  }
-
-  embed.addFields({
-    name,
-    value: String(value).trim(),
-    inline: name !== "Apply",
-  });
-}
-
-function hasText(value) {
-  return typeof value === "string" && value.trim().length > 0;
-}
-
-function isValidUrl(value) {
-  try {
-    new URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-module.exports = sendInternshipNotification;
-module.exports.buildInternshipEmbed = buildInternshipEmbed;
-module.exports.validateInternship = validateInternship;
+module.exports = {
+    buildInternshipEmbed,
+    sendInternshipNotification,
+};

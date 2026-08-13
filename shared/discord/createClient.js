@@ -1,13 +1,21 @@
-const { Client, GatewayIntentBits } = require("discord.js");
+const {
+  Client,
+  GatewayIntentBits,
+} = require("discord.js");
 
 /**
- * Creates a Discord client with only the intent needed for outbound messaging.
+ * Creates a Discord client with the intents needed
+ * for outbound messages and mention-based commands.
  *
- * @returns {Client} A Discord.js client instance.
+ * @returns {Client}
  */
 function createClient() {
   return new Client({
-    intents: [GatewayIntentBits.Guilds],
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ],
   });
 }
 
