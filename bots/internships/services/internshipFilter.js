@@ -104,6 +104,50 @@ function isEngineeringInternship(internship) {
 }
 
 /**
+ * Determines whether an internship is related to Computer Science.
+ *
+ * @param {object} internship
+ * @returns {boolean}
+ */
+function isCSInternship(internship) {
+    const role = String(
+        internship.role || ""
+    ).toLowerCase();
+
+    const csKeywords = [
+        "software",
+        "developer",
+        "development",
+        "computer science",
+        "machine learning",
+        "artificial intelligence",
+        " ai ",
+        "data science",
+        "data scientist",
+        "cyber",
+        "security",
+        "cloud",
+        "devops",
+        "backend",
+        "back-end",
+        "frontend",
+        "front-end",
+        "full stack",
+        "full-stack",
+        "web",
+        "platform",
+        "systems",
+        "infrastructure",
+        "network",
+        "database",
+    ];
+
+    return csKeywords.some((keyword) =>
+        role.includes(keyword)
+    );
+}
+
+/**
  * Determines whether the internship appears to be US-based.
  *
  * Remote roles are allowed unless they explicitly indicate
@@ -192,9 +236,75 @@ function getTopInternships(internships, limit = 5) {
         .map(({ internship }) => internship);
 }
 
+/**
+ * Returns the newest valid Computer Science internships.
+ *
+ * These internships are selected from the current repository
+ * and do not consider previously sent internships.
+ *
+ * @param {Array<object>} internships
+ * @param {number} limit
+ * @returns {Array<object>}
+ */
+function getTopCSInternships(
+    internships,
+    limit = 5
+) {
+    if (!Array.isArray(internships)) {
+        throw new TypeError(
+            "getTopCSInternships requires an array of internships."
+        );
+    }
+
+    if (!Number.isInteger(limit) || limit <= 0) {
+        throw new RangeError(
+            "getTopCSInternships requires a positive integer limit."
+        );
+    }
+
+    const currentYear = new Date().getFullYear();
+
+    const eligibleInternships = internships.filter(
+        (internship) =>
+            isCSInternship(internship) &&
+            isUSInternship(internship)
+    );
+
+    const uniqueInternships =
+        removeDuplicateInternships(
+            eligibleInternships
+        );
+
+    return uniqueInternships
+        .map((internship, originalIndex) => ({
+            internship,
+            originalIndex,
+            parsedDate: parsePostedDate(
+                internship.datePosted,
+                currentYear
+            ),
+        }))
+        .sort((a, b) => {
+            const aTime =
+                a.parsedDate?.getTime() ?? 0;
+
+            const bTime =
+                b.parsedDate?.getTime() ?? 0;
+
+            if (aTime !== bTime) {
+                return bTime - aTime;
+            }
+
+            return a.originalIndex - b.originalIndex;
+        })
+        .slice(0, limit)
+        .map(({ internship }) => internship);
+}
+
 module.exports = {
     createInternshipId,
     getTopInternships,
+    getTopCSInternships,
     isEngineeringInternship,
     isUSInternship,
     parsePostedDate,
