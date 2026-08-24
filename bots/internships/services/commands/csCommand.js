@@ -1,29 +1,33 @@
 const {
-    getCurrentInternships,
+    getCurrentCSInternships,
 } = require("../getCurrentInternships");
 
 const {
-    getTopCSInternships,
-} = require("../internshipFilter");
+    getInternshipsToSend,
+    saveShownInternships,
+} = require("../runInternshipDigest");
 
 async function execute(message) {
-    const internships = await getCurrentInternships();
+    const csInternships =
+        await getCurrentCSInternships();
 
-    const csInternships = getTopCSInternships(internships, 5);
+    const {
+        internshipsToSend,
+        sentInternships,
+        sentIds,
+    } = await getInternshipsToSend(csInternships, 5);
 
-    if (csInternships.length === 0) {
+    if (internshipsToSend.length === 0) {
         await message.reply(
             "No current Computer Science internships were found."
         );
         return;
     }
 
-    const topInternships = csInternships.slice(0, 5);
-
     const response = [
         "**Top 5 Computer Science Internships**",
         "",
-        ...topInternships.map(
+        ...internshipsToSend.map(
             (internship, index) =>
                 [
                     `**${index + 1}. ${internship.company}**`,
@@ -36,6 +40,12 @@ async function execute(message) {
     ].join("\n\n");
 
     await message.reply(response);
+
+    await saveShownInternships({
+        internshipsToSend,
+        sentInternships,
+        sentIds,
+    });
 }
 
 module.exports = {
