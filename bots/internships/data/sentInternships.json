@@ -67,5 +67,75 @@
     ],
     "applicationUrl": "https://careers.amd.com/jobs/90807?icims=1",
     "datePosted": 1787293338
+  },
+  {
+    "id": "859f3772-e32c-49b4-a277-ec18490b63ed",
+    "company": "AMD",
+    "role": "Hardware Design Verification Engineer Co-op/Intern",
+    "location": "San Jose, CA, Santa Clara, CA",
+    "locations": [
+      "San Jose, CA",
+      "Santa Clara, CA"
+    ],
+    "applicationUrl": "https://careers.amd.com/jobs/90811?icims=1",
+    "datePosted": 1787293338
+  },
+  {
+    "id": "501d315c-b9a3-47c7-b07e-24c99ed76f46",
+    "company": "AMD",
+    "role": "Hardware Design Verification Engineer Intern/Co-op",
+    "location": "Secaucus, NJ, Rochester, NY, Austin, TX, Longmont, CO, Fishkill, NY, Fort Collins, CO, Boxborough, MA",
+    "locations": [
+      "Secaucus, NJ",
+      "Rochester, NY",
+      "Austin, TX",
+      "Longmont, CO",
+      "Fishkill, NY",
+      "Fort Collins, CO",
+      "Boxborough, MA"
+    ],
+    "applicationUrl": "https://careers.amd.com/jobs/90813?icims=1",
+    "datePosted": 1787293338
+  },
+  {
+    "id": "0446e9d0-fc91-4c78-970a-fe7b5809cd30",
+    "company": "AMD",
+    "role": "Firmware Engineer Co-op/Intern",
+    "location": "San Jose, CA, Santa Clara, CA",
+    "locations": [
+      "San Jose, CA",
+      "Santa Clara, CA"
+    ],
+    "applicationUrl": "https://careers.amd.com/jobs/90809?icims=1",
+    "datePosted": 1787293338
+  },
+  {
+    "id": "2f20ddf7-c228-470e-9c1f-f35d8a1bfc0a",
+    "company": "AMD",
+    "role": "Hardware Engineer Intern/Co-op",
+    "location": "San Jose, CA, Santa Clara, CA",
+    "locations": [
+      "San Jose, CA",
+      "Santa Clara, CA"
+    ],
+    "applicationUrl": "https://careers.amd.com/jobs/90894?icims=1",
+    "datePosted": 1787293338
+  },
+  {
+    "id": "16ab9e56-fd38-43a4-a048-7cca73f13c2d",
+    "company": "AMD",
+    "role": "Hardware Design Verification Engineering Intern/Co-op",
+    "location": "Secaucus, NJ, Rochester, NY, Austin, TX, Longmont, CO, Fishkill, NY, Fort Collins, CO, Boxborough, MA",
+    "locations": [
+      "Secaucus, NJ",
+      "Rochester, NY",
+      "Austin, TX",
+      "Longmont, CO",
+      "Fishkill, NY",
+      "Fort Collins, CO",
+      "Boxborough, MA"
+    ],
+    "applicationUrl": "https://careers.amd.com/jobs/90820?icims=1",
+    "datePosted": 1787293338
   }
 ]

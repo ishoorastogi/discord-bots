@@ -238,6 +238,38 @@ function isEEInternship(internship) {
     );
 }
 
+function isBMEInternship(internship) {
+    const role = String(
+        internship.role || ""
+    ).toLowerCase();
+
+    const bmeKeywords = [
+        "biomedical",
+        "bioengineering",
+        "biomechanical",
+        "medical device",
+        "medical devices",
+        "biomaterials",
+        "biomechanics",
+        "clinical engineering",
+        "rehabilitation engineering",
+        "prosthetics",
+        "prosthetic",
+        "orthotics",
+        "bioinstrumentation",
+        "biosensors",
+        "biotechnology",
+        "biotech",
+        "medical imaging",
+        "neural engineering",
+        "tissue engineering",
+    ];
+
+    return bmeKeywords.some((keyword) =>
+        role.includes(keyword)
+    );
+}
+
 function getLocationValues(internship) {
     if (Array.isArray(internship?.locations)) {
         return internship.locations
@@ -295,15 +327,15 @@ function isUSLocation(location) {
         return false;
     }
 
+    if (isInternationalLocation(location)) {
+        return false;
+    }
+
     const statePattern =
-        /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/;
+        /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/i;
 
     if (statePattern.test(location)) {
         return true;
-    }
-
-    if (isInternationalLocation(location)) {
-        return false;
     }
 
     if (
@@ -431,41 +463,22 @@ function getTopMEInternships(internships, limit = 5) {
     });
 }
 
-function getTopEEInternships(
-    internships,
-    limit = 5
-) {
-    if (!Array.isArray(internships)) {
-        throw new TypeError(
-            "getTopEEInternships requires an array of internships."
-        );
-    }
+function getTopEEInternships(internships, limit = 5) {
+    return getTopMatchingInternships({
+        internships,
+        limit,
+        predicate: isEEInternship,
+        name: "getTopEEInternships",
+    });
+}
 
-    if (!Number.isInteger(limit) || limit <= 0) {
-        throw new RangeError(
-            "getTopEEInternships requires a positive integer limit."
-        );
-    }
-
-    const eligibleInternships =
-        internships.filter(
-            (internship) =>
-                isEEInternship(internship) &&
-                isUSInternship(internship)
-        );
-
-    const uniqueInternships =
-        removeDuplicateInternships(
-            eligibleInternships
-        );
-
-    return uniqueInternships
-        .sort(
-            (a, b) =>
-                Number(b.datePosted) -
-                Number(a.datePosted)
-        )
-        .slice(0, limit);
+function getTopBMEInternships(internships, limit = 5) {
+    return getTopMatchingInternships({
+        internships,
+        limit,
+        predicate: isBMEInternship,
+        name: "getTopBMEInternships",
+    });
 }
 
 module.exports = {
@@ -476,11 +489,13 @@ module.exports = {
     getTopCSInternships,
     getTopMEInternships,
     getTopEEInternships,
+    getTopBMEInternships,
     isEngineeringInternship,
     isUSInternship,
     isCSInternship,
     isMEInternship,
     isEEInternship,
+    isBMEInternship,
     parsePostedDate,
     removeDuplicateInternships,
 };

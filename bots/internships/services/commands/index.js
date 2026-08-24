@@ -17,10 +17,10 @@ const unmuteCommand = require("./unmuteCommand");
 const csCommand = require("./csCommand");
 const meCommand = require("./meCommand");
 const eeCommand = require("./eeCommand");
+const bmeCommand = require("./bmeCommand");
 
 /*
 Need to add:
-- bme
 - ai
 - data science
 */
@@ -38,6 +38,7 @@ const commands = [
     csCommand,
     meCommand,
     eeCommand,
+    bmeCommand,
 ];
 
 const commandMap = new Map(
