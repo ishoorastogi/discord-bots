@@ -5,6 +5,7 @@ const statusCommand = require("./statusCommand");
 //Show available commands
 const randomCommand = require("./randomCommand");
 const sendMeAllCommand = require("./sendMeAllCommand");
+const sendmecsCommand = require("./sendmecsCommand");
 
 //System commands
 const killCommand = require("./killCommand");
@@ -20,6 +21,7 @@ const commands = [
     statusCommand,
     randomCommand,
     sendMeAllCommand,
+    sendmecsCommand,
     killCommand,
     clearCommand,
     muteCommand,
