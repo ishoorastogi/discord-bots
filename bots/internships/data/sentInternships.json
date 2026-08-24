@@ -137,5 +137,61 @@
     ],
     "applicationUrl": "https://careers.amd.com/jobs/90820?icims=1",
     "datePosted": 1787293338
+  },
+  {
+    "id": "3b263339-ab18-4363-b881-4222882cc14b",
+    "company": "Springs Window Fashions",
+    "role": "Textile Engineering Intern - Summer 2027",
+    "location": "Middleton, WI",
+    "locations": [
+      "Middleton, WI"
+    ],
+    "applicationUrl": "https://careers-springswindowfashions.icims.com/jobs/12881/job?mobile=true&needsRedirect=false",
+    "datePosted": 1787407584
+  },
+  {
+    "id": "a9cd2f49-efd8-4433-b2f9-c9ddea84ea80",
+    "company": "Springs Window Fashions",
+    "role": "AI Analyst Intern - Consumer Business Unit",
+    "location": "Middleton, WI",
+    "locations": [
+      "Middleton, WI"
+    ],
+    "applicationUrl": "https://careers-springswindowfashions.icims.com/jobs/12875/job?mobile=true&needsRedirect=false",
+    "datePosted": 1787407584
+  },
+  {
+    "id": "cbb3ab08-f178-4e8a-b8f7-95efd3b9dd22",
+    "company": "Springs Window Fashions",
+    "role": "Application Engineering Intern - Summer 2027",
+    "location": "Long Island City, Queens, NY",
+    "locations": [
+      "Long Island City, Queens, NY"
+    ],
+    "applicationUrl": "https://careers-springswindowfashions.icims.com/jobs/12893/job?mobile=true&needsRedirect=false",
+    "datePosted": 1787407578
+  },
+  {
+    "id": "6245b5b1-9a7d-4d30-aabb-19a2cedbde40",
+    "company": "Microsoft",
+    "role": "AI Software Engineer Intern - Edge",
+    "location": "Redmond, WA, Mountain View, CA",
+    "locations": [
+      "Redmond, WA",
+      "Mountain View, CA"
+    ],
+    "applicationUrl": "https://apply.careers.microsoft.com/careers/job/1970393556979054",
+    "datePosted": 1787366266
+  },
+  {
+    "id": "9d5887c5-a484-493a-a9cd-38e0b51c1ef6",
+    "company": "Elevate Semiconductor",
+    "role": "Product Engineering Intern",
+    "location": "San Diego, CA",
+    "locations": [
+      "San Diego, CA"
+    ],
+    "applicationUrl": "https://apply.workable.com/elevate-semiconductor/j/F234DECA3C/apply",
+    "datePosted": 1787366024
   }
 ]
