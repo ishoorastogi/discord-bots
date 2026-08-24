@@ -1,5 +1,5 @@
 const {
-    getCurrentCSInternships,
+    getCurrentMEInternships,
 } = require("../getCurrentInternships");
 
 const {
@@ -12,24 +12,24 @@ const {
 } = require("../internshipDateFormatter");
 
 async function execute(message) {
-    const csInternships =
-        await getCurrentCSInternships();
+    const meInternships =
+        await getCurrentMEInternships();
 
     const {
         internshipsToSend,
         sentInternships,
         sentIds,
-    } = await getInternshipsToSend(csInternships, 5);
+    } = await getInternshipsToSend(meInternships, 5);
 
     if (internshipsToSend.length === 0) {
         await message.reply(
-            "No current Computer Science internships were found."
+            "No current Mechanical Engineering internships were found."
         );
         return;
     }
 
     const response = [
-        "**Top 5 Computer Science Internships**",
+        "**Top 5 Mechanical Engineering Internships**",
         "",
         ...internshipsToSend.map(
             (internship, index) =>
@@ -53,6 +53,6 @@ async function execute(message) {
 }
 
 module.exports = {
-    name: "/cs",
+    name: "/me",
     execute,
 };

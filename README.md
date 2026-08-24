@@ -8,18 +8,18 @@ Currently contains the **Internship Job Bot**, which automatically finds and pos
 
 ## Internship Job Bot
 
-The Internship Job Bot reads the `README.md` from:
+The Internship Job Bot reads `listings.json` from:
 
-`vanshb03/Summer2027-Internships`
+`SimplifyJobs/Summer2027-Internships`
 
-It parses the available internships, filters and ranks them, and posts a daily digest to Discord.
+It parses the available JSON listings, filters and ranks them, and posts a daily digest to Discord.
 
 ### Current Flow
 
 ```text
 GitHub Repository
        ↓
-README.md
+listings.json
        ↓
 Internship Parser
        ↓
@@ -27,7 +27,7 @@ Engineering + US Filter
        ↓
 Remove Duplicates
        ↓
-Rank by Date
+Rank globally by date_posted
        ↓
 Exclude Previously Sent
        ↓
@@ -73,7 +73,8 @@ Previously sent internships are stored in:
 bots/internships/data/sentInternships.json
 ```
 
-The bot uses a stable internship ID based on:
+The bot prefers the source listing ID when available. For older entries and
+fallback cases, it also supports a stable internship ID based on:
 
 - Company
 - Role
@@ -143,10 +144,23 @@ Direct messages the requesting user the complete `sentInternships.json` file.
 
 Fetches the current GitHub internship data and sends the 5 newest Computer Science-related internships.
 
-This command does **not** depend on `sentInternships.json`.
+This command uses the shared `sentInternships.json` history, prefers unseen CS
+internships, and falls back to already-sent CS internships only if needed.
 
 ```text
 @Internship Job Bot /cs
+```
+
+## `/me`
+
+Fetches the current GitHub internship data and sends the 5 newest Mechanical
+Engineering-related internships.
+
+This command uses the same shared `sentInternships.json` history as the daily
+digest and `/cs`.
+
+```text
+@Internship Job Bot /me
 ```
 
 ## `/clear`
@@ -247,10 +261,10 @@ INTERNSHIP_CRON_SCHEDULE=0 8 * * *
 INTERNSHIP_TIMEZONE=America/Chicago
 RUN_ON_STARTUP=true
 
-INTERNSHIP_REPO_OWNER=vanshb03
+INTERNSHIP_REPO_OWNER=SimplifyJobs
 INTERNSHIP_REPO_NAME=Summer2027-Internships
 INTERNSHIP_REPO_BRANCH=dev
-INTERNSHIP_REPO_PATH=README.md
+INTERNSHIP_REPO_PATH=.github/scripts/listings.json
 
 GITHUB_TOKEN=
 ```
@@ -285,14 +299,14 @@ This is used to restrict administrative commands:
 The bot currently reads:
 
 ```text
-vanshb03/Summer2027-Internships
+SimplifyJobs/Summer2027-Internships
 ```
 
 from:
 
 ```text
 branch: dev
-path: README.md
+path: .github/scripts/listings.json
 ```
 
 `GITHUB_TOKEN` is optional because the repository is public.
@@ -388,6 +402,7 @@ bots/
     │
     ├── services/
     │   ├── botState.js
+    │   ├── internshipDateFormatter.js
     │   ├── getCurrentInternships.js
     │   ├── internshipFilter.js
     │   ├── internshipParser.js
@@ -402,9 +417,11 @@ bots/
     │   │   ├── helpCommand.js
     │   │   ├── index.js
     │   │   ├── killCommand.js
+    │   │   ├── meCommand.js
     │   │   ├── muteCommand.js
     │   │   ├── randomCommand.js
     │   │   ├── sendMeAllCommand.js
+    │   │   ├── sendmecsCommand.js
     │   │   ├── statusCommand.js
     │   │   └── unmuteCommand.js
     │   │
@@ -430,12 +447,13 @@ Example entry:
 
 ```json
 {
-  "id": "roblox|software engineer intern 🇺🇸|san mateo, ca|https://careers.roblox.com/jobs/8072713",
+  "id": "98b2d671-3f03-430e-b18c-e5ddb8ce5035",
   "company": "Roblox",
-  "role": "Software Engineer Intern 🇺🇸",
+  "role": "Software Engineer Intern",
   "location": "San Mateo, CA",
+  "locations": ["San Mateo, CA"],
   "applicationUrl": "https://careers.roblox.com/jobs/8072713",
-  "datePosted": "Aug 05"
+  "datePosted": 1787356800
 }
 ```
 
@@ -467,7 +485,8 @@ Example:
 - The bot currently runs on macOS.
 - Automatic digests use Central Time.
 - Commands continue to work while the automatic digest is muted.
-- `/cs` searches the current repository data and does not depend on previously posted internships.
+- `/cs` and `/me` search the current repository data and share the same history
+  as the automatic digest.
 - Owner-only commands are controlled using `BOT_OWNER_ID`.
 
 ---
@@ -476,10 +495,8 @@ Example:
 
 Potential future improvements include:
 
-- `/me` for Mechanical Engineering internships
 - `/ee` for Electrical Engineering internships
 - Better discipline classification
-- More robust closed/inactive internship detection
 - Improved duplicate detection
 - Automated tests for commands
 - Better Discord embeds

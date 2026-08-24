@@ -3,6 +3,7 @@ const path = require("path");
 
 const {
     createInternshipId,
+    getInternshipIdentityKeys,
 } = require("./internshipFilter");
 
 const {
@@ -53,12 +54,33 @@ function getSavedInternshipId(internship) {
     return createInternshipId(internship);
 }
 
+function addIdentityKeys(target, internship) {
+    for (const key of getInternshipIdentityKeys(
+        internship
+    )) {
+        target.add(key);
+    }
+}
+
+function hasAnyIdentityKey(target, internship) {
+    for (const key of getInternshipIdentityKeys(
+        internship
+    )) {
+        if (target.has(key)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function createSavedInternship(internship) {
     return {
         id: createInternshipId(internship),
         company: internship.company,
         role: internship.role,
         location: internship.location,
+        locations: internship.locations,
         applicationUrl: internship.applicationUrl,
         datePosted: internship.datePosted,
     };
@@ -77,13 +99,15 @@ function selectInternshipsFromHistory({
     sentInternships,
     limit = 5,
 }) {
-    const sentIds = new Set(
-        sentInternships.map(getSavedInternshipId)
-    );
+    const sentIds = new Set();
+
+    for (const internship of sentInternships) {
+        addIdentityKeys(sentIds, internship);
+    }
 
     const newInternships = internships.filter(
         (internship) =>
-            !sentIds.has(createInternshipId(internship))
+            !hasAnyIdentityKey(sentIds, internship)
     );
 
     const internshipsToSend = newInternships.slice(
@@ -97,7 +121,7 @@ function selectInternshipsFromHistory({
 
         const fallbackInternships = internships
             .filter((internship) =>
-                sentIds.has(createInternshipId(internship))
+                hasAnyIdentityKey(sentIds, internship)
             )
             .slice(0, remainingSlots);
 
@@ -141,14 +165,12 @@ async function saveShownInternships({
     sentIds,
 }) {
     for (const internship of internshipsToSend) {
-        const id = createInternshipId(internship);
-
-        if (!sentIds.has(id)) {
+        if (!hasAnyIdentityKey(sentIds, internship)) {
             sentInternships.push(
                 createSavedInternship(internship)
             );
 
-            sentIds.add(id);
+            addIdentityKeys(sentIds, internship);
         }
     }
 

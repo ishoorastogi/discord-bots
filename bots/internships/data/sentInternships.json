@@ -278,5 +278,238 @@
     "location": "Los Angeles, CA",
     "applicationUrl": "https://job-boards.greenhouse.io/freeformfuturecorp/jobs/7872198003?utm_source=github-vansh-ouckah",
     "datePosted": "Aug 21"
+  },
+  {
+    "id": "point72|investment analyst intern, point72 academy|5 locationsnew york, nysan francisco, cachicago, ilwest palm beach, flmiami, fl|https://careers.point72.com/csjobdetail?jobname=2027-point72-academy-investment-analyst-summer-internship-program-us&jobcode=cpa-0014081&utm_source=github-vansh-ouckah",
+    "company": "Point72",
+    "role": "Investment Analyst Intern, Point72 Academy",
+    "location": "5 locationsNew York, NYSan Francisco, CAChicago, ILWest Palm Beach, FLMiami, FL",
+    "applicationUrl": "https://careers.point72.com/CSJobDetail?jobName=2027-point72-academy-investment-analyst-summer-internship-program-us&jobCode=CPA-0014081&utm_source=github-vansh-ouckah",
+    "datePosted": "Apr 19"
+  },
+  {
+    "id": "a9cd2f49-efd8-4433-b2f9-c9ddea84ea80",
+    "company": "Springs Window Fashions",
+    "role": "AI Analyst Intern - Consumer Business Unit",
+    "location": "Middleton, WI",
+    "locations": [
+      "Middleton, WI"
+    ],
+    "applicationUrl": "https://careers-springswindowfashions.icims.com/jobs/12875/job?mobile=true&needsRedirect=false",
+    "datePosted": 1787407584
+  },
+  {
+    "id": "6245b5b1-9a7d-4d30-aabb-19a2cedbde40",
+    "company": "Microsoft",
+    "role": "AI Software Engineer Intern - Edge",
+    "location": "Redmond, WA, Mountain View, CA",
+    "locations": [
+      "Redmond, WA",
+      "Mountain View, CA"
+    ],
+    "applicationUrl": "https://apply.careers.microsoft.com/careers/job/1970393556979054",
+    "datePosted": 1787366266
+  },
+  {
+    "id": "b9776d83-bf68-42d9-88e2-4ebdd4ffda09",
+    "company": "TikTok",
+    "role": "Software Engineer Intern",
+    "location": "San Jose, CA",
+    "locations": [
+      "San Jose, CA"
+    ],
+    "applicationUrl": "https://lifeattiktok.com/search/7676276048527214901",
+    "datePosted": 1787361563
+  },
+  {
+    "id": "7fff5796-fc88-4d04-a6fa-be35e0bdb2e0",
+    "company": "TikTok",
+    "role": "AI Product Manager Intern - Product Social",
+    "location": "San Jose, CA",
+    "locations": [
+      "San Jose, CA"
+    ],
+    "applicationUrl": "https://lifeattiktok.com/search/7675616554318596357",
+    "datePosted": 1787361563
+  },
+  {
+    "id": "54925b41-cce3-4b81-9e12-22fabaa04d36",
+    "company": "Analog Devices",
+    "role": "Systems Integration Engineer Intern",
+    "location": "Wilmington, MA, Durham, NC",
+    "locations": [
+      "Wilmington, MA",
+      "Durham, NC"
+    ],
+    "applicationUrl": "https://analogdevices.wd1.myworkdayjobs.com/External/job/US-NC-Durham/System-Integration-Engineer-Intern_R265305",
+    "datePosted": 1787356800
+  },
+  {
+    "id": "733e27ec-57f0-4e26-8f45-410e4fd4aed5",
+    "company": "SimIS",
+    "role": "Artificial Intelligence Developer Intern - Aerospace/Aviation",
+    "location": "Suffolk, VA",
+    "locations": [
+      "Suffolk, VA"
+    ],
+    "applicationUrl": "https://simisinc.applytojob.com/apply/U1yOSyvkvH/AerospaceAviation-Artificial-Intelligence-Developer-Intern",
+    "datePosted": 1787353633
+  },
+  {
+    "id": "afa64b8c-e29c-4c0b-bc7d-fbca02771094",
+    "company": "Micron Technology",
+    "role": "SoC RTL Design Engineer Intern - HBM",
+    "location": "Folsom, CA",
+    "locations": [
+      "Folsom, CA"
+    ],
+    "applicationUrl": "https://micron.wd1.myworkdayjobs.com/External/job/Folsom-CA/Intern---HBM-SoC-RTL-Design-Engineer_JR109290",
+    "datePosted": 1787184000
+  },
+  {
+    "id": "42e6d8e4-b801-4a3a-9d6a-06931b107f43",
+    "company": "By Light Professional IT Services",
+    "role": "Software Design Engineer Intern",
+    "location": "Orlando, FL",
+    "locations": [
+      "Orlando, FL"
+    ],
+    "applicationUrl": "https://jobs-bylight.icims.com/jobs/11204/job?mobile=true&needsRedirect=false",
+    "datePosted": 1787091221
+  },
+  {
+    "id": "5f3d33fb-4b34-47a8-a127-86e779a876b6",
+    "company": "GE Aerospace",
+    "role": "Aerospace Engineering Engines Co-op - Computer or Software Engineering",
+    "location": "Lynn, MA, Evendale, OH",
+    "locations": [
+      "Lynn, MA",
+      "Evendale, OH"
+    ],
+    "applicationUrl": "https://geaerospace.wd5.myworkdayjobs.com/ge_externalsite/job/Evendale/Engines-Engineering-Co-op---Computer-or-Software-Engineering---US---Fall-2027_R5029637-1",
+    "datePosted": 1787005323
+  },
+  {
+    "id": "9c12dcc7-3cb4-42ae-9f92-b25cd4e324c3",
+    "company": "Micron Technology",
+    "role": "DRAM Design Engineer Intern",
+    "location": "Boise, ID",
+    "locations": [
+      "Boise, ID"
+    ],
+    "applicationUrl": "https://micron.wd1.myworkdayjobs.com/External/job/Boise-ID---Main-Site/Intern---DRAM-Design-Engineer_JR108458",
+    "datePosted": 1786924800
+  },
+  {
+    "id": "8c8c7d2c-0377-4609-87fb-df719e4b5165",
+    "company": "Dedalus Labs",
+    "role": "Design Engineer Intern",
+    "location": "SF",
+    "locations": [
+      "SF"
+    ],
+    "applicationUrl": "https://jobs.ashbyhq.com/dedalus-labs/bcd6db2e-400b-4ffa-aef3-0948a7b558c2/application?embed=true",
+    "datePosted": 1786777878
+  },
+  {
+    "id": "f9cd7f8b-40b0-42a5-8bd2-f23dfd7d8ac5",
+    "company": "ByteDance",
+    "role": "ASIC Design Engineer Intern - Video Silicon IP",
+    "location": "San Jose, CA",
+    "locations": [
+      "San Jose, CA"
+    ],
+    "applicationUrl": "https://jobs.bytedance.com/en/position/7673638856678279429/detail",
+    "datePosted": 1786699870
+  },
+  {
+    "id": "67572b55-5985-4ac4-b570-47455734d5f3",
+    "company": "Intel",
+    "role": "Physical Design Engineer Intern",
+    "location": "Santa Clara, CA, Folsom, CA, Phoenix, AZ",
+    "locations": [
+      "Santa Clara, CA",
+      "Folsom, CA",
+      "Phoenix, AZ"
+    ],
+    "applicationUrl": "https://intel.wd1.myworkdayjobs.com/en-us/external/job/US-California-Folsom/Physical-Design-Engineering-Graduate-Intern_JR0283509",
+    "datePosted": 1786665600
+  },
+  {
+    "id": "39be2363-aaad-4bf0-9f3a-19906a6a8182",
+    "company": "RTX",
+    "role": "Electrical Computer-Aided Design Engineer Intern",
+    "location": "Tucson, AZ",
+    "locations": [
+      "Tucson, AZ"
+    ],
+    "applicationUrl": "https://globalhr.wd5.myworkdayjobs.com/fr-CA/Private_Posting_No_TMP/job/US-AZ-TUCSON-M02--1151-E-Hermans-Rd--BLDG-M02/EAP-Engineering-ECAD-Intern--Summer-2027-_01866716-1",
+    "datePosted": 1786665600
+  },
+  {
+    "id": "ad0c51d0-09a4-4e54-b922-7cccc8b69e6e",
+    "company": "Micron Technology",
+    "role": "Digital IP Design Engineer Intern - DRAM",
+    "location": "Boise, ID",
+    "locations": [
+      "Boise, ID"
+    ],
+    "applicationUrl": "https://micron.wd1.myworkdayjobs.com/External/job/Boise-ID---Main-Site/Intern---Digital-IP-Design-Engineer--DRAM_JR108533",
+    "datePosted": 1786579200
+  },
+  {
+    "id": "39cb839f-d71d-445f-8fc1-2f4c28012af9",
+    "company": "Analog Devices",
+    "role": "Algorithm Development Engineer Intern",
+    "location": "Wilmington, MA",
+    "locations": [
+      "Wilmington, MA"
+    ],
+    "applicationUrl": "https://analogdevices.wd1.myworkdayjobs.com/External/job/US-MA-Wilmington/Algorithm-Development-Engineer-Intern_R265306-1",
+    "datePosted": 1787356800
+  },
+  {
+    "id": "45b27f18-198a-4ef0-b8f3-abb8018e7c99",
+    "company": "Ambrook",
+    "role": "Software Engineer Intern",
+    "location": "NYC",
+    "locations": [
+      "NYC"
+    ],
+    "applicationUrl": "https://jobs.ashbyhq.com/ambrook/e458b046-aa7f-4022-bca5-63cdfd495456/application?embed=true",
+    "datePosted": 1787353655
+  },
+  {
+    "id": "e4dd1ece-36bc-4785-88a7-beb7bdfb4414",
+    "company": "Fullbay",
+    "role": "Software Engineer Intern",
+    "location": "Phoenix, AZ",
+    "locations": [
+      "Phoenix, AZ"
+    ],
+    "applicationUrl": "https://fullbay.bamboohr.com/careers/131/",
+    "datePosted": 1787343488
+  },
+  {
+    "id": "631bbbfe-8d2d-4b49-8e16-c60d7eebde34",
+    "company": "Syska Hennessy Group",
+    "role": "Innovations Intern - Full Stack/Front End Engineering",
+    "location": "NYC",
+    "locations": [
+      "NYC"
+    ],
+    "applicationUrl": "https://job-boards.greenhouse.io/syskahennessy/jobs/8147733",
+    "datePosted": 1787341852
+  },
+  {
+    "id": "6b73883a-ab74-444e-93ce-5fd790148177",
+    "company": "Zipline",
+    "role": "Software Engineer Intern - Summer 2027",
+    "location": "South SF",
+    "locations": [
+      "South SF"
+    ],
+    "applicationUrl": "https://www.zipline.com/open-roles?gh_jid=7929236003",
+    "datePosted": 1787341552
   }
 ]

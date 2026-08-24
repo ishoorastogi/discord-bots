@@ -4,7 +4,7 @@ async function execute(message) {
             "**Internship Bot Commands**",
             "",
             "`@Internship Job Bot /cs` - Top 5 most recent CS internships",
-            "`@Internship Job Bot /me` - Top 5 most recent Mechanical Engineering internships **Under construction**",
+            "`@Internship Job Bot /me` - Top 5 most recent Mechanical Engineering internships",
             "`@Internship Job Bot /ee` - Top 5 most recent Electrical Engineering internships",
             "`@Internship Job Bot /latest` - Top 5 most recent engineering internships",
             "`@Internship Job Bot /random` - 5 random previously sent internships",

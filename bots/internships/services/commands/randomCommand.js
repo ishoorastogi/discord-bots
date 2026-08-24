@@ -2,6 +2,10 @@ const {
     readSentInternships,
 } = require("../runInternshipDigest");
 
+const {
+    formatInternshipDate,
+} = require("../internshipDateFormatter");
+
 async function execute(message) {
     const sentInternships =
         await readSentInternships();
@@ -40,7 +44,7 @@ async function execute(message) {
                     `**${index + 1}. ${internship.company}**`,
                     internship.role,
                     `📍 ${internship.location}`,
-                    `📅 ${internship.datePosted}`,
+                    `📅 ${formatInternshipDate(internship)}`,
                     `[Apply Here](${internship.applicationUrl})`,
                 ].join("\n")
         ),

@@ -15,6 +15,7 @@ const unmuteCommand = require("./unmuteCommand");
 
 // Discipline-specific commands
 const csCommand = require("./csCommand");
+const meCommand = require("./meCommand");
 
 const commands = [
     helpCommand,
@@ -27,6 +28,7 @@ const commands = [
     muteCommand,
     unmuteCommand,
     csCommand,
+    meCommand,
 ];
 
 const commandMap = new Map(

@@ -1,174 +1,107 @@
-/**
- * Cleans basic Markdown and HTML formatting from a table cell.
- *
- * @param {string} value
- * @returns {string}
- */
-function cleanCell(value) {
-    return value
-        .replace(/<br\s*\/?>/gi, ", ")
-        .replace(/<[^>]+>/g, "")
-        .replace(/\*\*/g, "")
-        .replace(/&nbsp;/gi, " ")
-        .trim();
-}
-
-/**
- * Extracts the first HTTP(S) URL from a Markdown or HTML link.
- *
- * @param {string} value
- * @returns {string | undefined}
- */
-function extractApplicationUrl(value) {
-    const markdownLink = value.match(
-        /\[[^\]]*]\((https?:\/\/[^)\s]+)\)/i
-    );
-
-    if (markdownLink) {
-        return markdownLink[1];
+function normalizeLocations(locations) {
+    if (Array.isArray(locations)) {
+        return locations
+            .map((location) => String(location || "").trim())
+            .filter(Boolean);
     }
 
-    const htmlLink = value.match(
-        /href=["'](https?:\/\/[^"']+)["']/i
-    );
-
-    if (htmlLink) {
-        return htmlLink[1];
+    if (typeof locations === "string") {
+        return locations
+            .split(/\n|;/)
+            .map((location) => location.trim())
+            .filter(Boolean);
     }
 
-    const rawUrl = value.match(/https?:\/\/[^\s|)]+/i);
-
-    return rawUrl?.[0];
+    return [];
 }
 
-/**
- * Checks whether a parsed Markdown row is a separator row.
- *
- * @param {string[]} cells
- * @returns {boolean}
- */
-function isSeparatorRow(cells) {
-    return cells.every((cell) =>
-        /^:?-{3,}:?$/.test(cell.trim())
+function normalizeListing(listing) {
+    const company = String(
+        listing.company_name || ""
+    ).trim();
+    const role = String(listing.title || "").trim();
+    const applicationUrl = String(
+        listing.url || ""
+    ).trim();
+    const locations = normalizeLocations(
+        listing.locations
     );
+    const datePosted =
+        Number.isFinite(listing.date_posted)
+            ? listing.date_posted
+            : Number(listing.date_posted);
+
+    if (
+        listing.active !== true ||
+        listing.is_visible !== true ||
+        !company ||
+        !role ||
+        !applicationUrl
+    ) {
+        return undefined;
+    }
+
+    return {
+        id:
+            typeof listing.id === "string" &&
+            listing.id.trim() !== ""
+                ? listing.id.trim()
+                : undefined,
+        company,
+        role,
+        location: locations.join(", "),
+        locations,
+        applicationUrl,
+        datePosted: Number.isFinite(datePosted)
+            ? datePosted
+            : undefined,
+    };
 }
 
 /**
- * Splits a Markdown table row into cells.
+ * Parses available internships from SimplifyJobs listings.json.
  *
- * @param {string} line
- * @returns {string[]}
- */
-function splitTableRow(line) {
-    const trimmed = line.trim();
-    const withoutLeadingPipe = trimmed.startsWith("|")
-        ? trimmed.slice(1)
-        : trimmed;
-
-    const withoutTrailingPipe = withoutLeadingPipe.endsWith("|")
-        ? withoutLeadingPipe.slice(0, -1)
-        : withoutLeadingPipe;
-
-    return withoutTrailingPipe
-        .split("|")
-        .map((cell) => cell.trim());
-}
-
-/**
- * Parses available internships from the repository README.
- *
- * @param {string} markdown
+ * @param {string} json
  * @returns {Array<{
+ *   id?: string,
  *   company: string,
  *   role: string,
  *   location: string,
+ *   locations?: string[],
  *   applicationUrl: string,
- *   datePosted: string
+ *   datePosted?: number
  * }>}
  */
-function parseInternships(markdown) {
-    if (typeof markdown !== "string" || markdown.trim() === "") {
+function parseInternships(json) {
+    if (typeof json !== "string" || json.trim() === "") {
         throw new Error(
-            "Internship parser requires non-empty Markdown content."
+            "Internship parser requires non-empty JSON content."
         );
     }
 
-    const internships = [];
-    const lines = markdown.split(/\r?\n/);
+    let listings;
 
-    let insideInternshipTable = false;
-    let previousCompany;
-
-    for (const line of lines) {
-        const trimmed = line.trim();
-
-        if (!insideInternshipTable) {
-            const normalized = trimmed.toLowerCase();
-
-            if (
-                trimmed.startsWith("|") &&
-                normalized.includes("company") &&
-                normalized.includes("role") &&
-                normalized.includes("application")
-            ) {
-                insideInternshipTable = true;
-            }
-
-            continue;
-        }
-
-        if (!trimmed.startsWith("|")) {
-            if (internships.length > 0) {
-                break;
-            }
-
-            continue;
-        }
-
-        const cells = splitTableRow(trimmed);
-
-        if (cells.length < 5 || isSeparatorRow(cells)) {
-            continue;
-        }
-
-        const [
-            companyCell,
-            roleCell,
-            locationCell,
-            applicationCell,
-            dateCell,
-        ] = cells;
-
-        let company = cleanCell(companyCell);
-
-        if (company === "↳" || company === "") {
-            company = previousCompany;
-        } else {
-            previousCompany = company;
-        }
-
-        const role = cleanCell(roleCell);
-        const location = cleanCell(locationCell);
-        const applicationUrl =
-            extractApplicationUrl(applicationCell);
-        const datePosted = cleanCell(dateCell);
-
-        if (!company || !role || !applicationUrl) {
-            continue;
-        }
-
-        internships.push({
-            company,
-            role,
-            location,
-            applicationUrl,
-            datePosted,
-        });
+    try {
+        listings = JSON.parse(json);
+    } catch (error) {
+        throw new Error(
+            `Failed to parse internship listings JSON: ${error.message}`
+        );
     }
+
+    if (!Array.isArray(listings)) {
+        throw new Error(
+            "Internship listings JSON must contain an array."
+        );
+    }
+
+    const internships = listings
+        .map(normalizeListing)
+        .filter(Boolean);
 
     if (internships.length === 0) {
         throw new Error(
-            "No available internships were found in the repository Markdown."
+            "No active, visible internships were found in listings JSON."
         );
     }
 
@@ -176,5 +109,6 @@ function parseInternships(markdown) {
 }
 
 module.exports = {
+    normalizeLocations,
     parseInternships,
 };
