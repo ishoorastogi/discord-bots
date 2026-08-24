@@ -10,6 +10,7 @@ const {
     getTopInternships,
     getTopCSInternships,
     getTopMEInternships,
+    getTopEEInternships,
 } = require("./internshipFilter");
 
 async function getRankedInternships(rankInternships) {
@@ -56,8 +57,19 @@ async function getCurrentMEInternships() {
     return getRankedInternships(getTopMEInternships);
 }
 
+async function getCurrentEEInternships() {
+    const internships =
+        await getCurrentInternships();
+
+    return getTopEEInternships(
+        internships,
+        internships.length
+    );
+}
+
 module.exports = {
     getCurrentCSInternships,
     getCurrentInternships,
     getCurrentMEInternships,
+    getCurrentEEInternships,
 };

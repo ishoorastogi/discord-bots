@@ -16,6 +16,14 @@ const unmuteCommand = require("./unmuteCommand");
 // Discipline-specific commands
 const csCommand = require("./csCommand");
 const meCommand = require("./meCommand");
+const eeCommand = require("./eeCommand");
+
+/*
+Need to add:
+- bme
+- ai
+- data science
+*/
 
 const commands = [
     helpCommand,
@@ -29,6 +37,7 @@ const commands = [
     unmuteCommand,
     csCommand,
     meCommand,
+    eeCommand,
 ];
 
 const commandMap = new Map(

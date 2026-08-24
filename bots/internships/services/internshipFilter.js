@@ -201,6 +201,43 @@ function isMEInternship(internship) {
     return hasKeyword(role, meKeywords);
 }
 
+function isEEInternship(internship) {
+    const role = String(
+        internship.role || ""
+    ).toLowerCase();
+
+    const eeKeywords = [
+        "electrical",
+        "electronics",
+        "electronic",
+        "hardware",
+        "firmware",
+        "embedded",
+        "fpga",
+        "asic",
+        "semiconductor",
+        "circuit",
+        "circuits",
+        "pcb",
+        "power systems",
+        "power electronics",
+        "signal processing",
+        "digital design",
+        "analog",
+        "rf engineer",
+        "radio frequency",
+        "controls engineer",
+        "control systems",
+        "silicon",
+        "chip design",
+        "verification engineer",
+    ];
+
+    return eeKeywords.some((keyword) =>
+        role.includes(keyword)
+    );
+}
+
 function getLocationValues(internship) {
     if (Array.isArray(internship?.locations)) {
         return internship.locations
@@ -394,6 +431,43 @@ function getTopMEInternships(internships, limit = 5) {
     });
 }
 
+function getTopEEInternships(
+    internships,
+    limit = 5
+) {
+    if (!Array.isArray(internships)) {
+        throw new TypeError(
+            "getTopEEInternships requires an array of internships."
+        );
+    }
+
+    if (!Number.isInteger(limit) || limit <= 0) {
+        throw new RangeError(
+            "getTopEEInternships requires a positive integer limit."
+        );
+    }
+
+    const eligibleInternships =
+        internships.filter(
+            (internship) =>
+                isEEInternship(internship) &&
+                isUSInternship(internship)
+        );
+
+    const uniqueInternships =
+        removeDuplicateInternships(
+            eligibleInternships
+        );
+
+    return uniqueInternships
+        .sort(
+            (a, b) =>
+                Number(b.datePosted) -
+                Number(a.datePosted)
+        )
+        .slice(0, limit);
+}
+
 module.exports = {
     createInternshipId,
     createLegacyInternshipId,
@@ -401,10 +475,12 @@ module.exports = {
     getTopInternships,
     getTopCSInternships,
     getTopMEInternships,
+    getTopEEInternships,
     isEngineeringInternship,
     isUSInternship,
     isCSInternship,
     isMEInternship,
+    isEEInternship,
     parsePostedDate,
     removeDuplicateInternships,
 };
