@@ -6,6 +6,7 @@ const statusCommand = require("./statusCommand");
 const randomCommand = require("./randomCommand");
 const sendMeAllCommand = require("./sendMeAllCommand");
 const sendmecsCommand = require("./sendmecsCommand");
+const futureCommand = require("./futureCommand");
 
 //System commands
 const killCommand = require("./killCommand");
@@ -39,6 +40,7 @@ const commands = [
     meCommand,
     eeCommand,
     bmCommand,
+    futureCommand,
 ];
 
 const commandMap = new Map(

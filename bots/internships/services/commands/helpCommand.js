@@ -10,6 +10,7 @@ async function execute(message) {
             "`/sendmecs` - DM the previously sent CS internships JSON file",
             "`/status` - Show bot status",
             "`/help` - Show this message",
+            "`/future` - Show future planned commands",
             "The following commands are only available to the bot owner:",
             "`/kill` - Shutdown the bot",
             "`/clear` - Clear the internship history",
