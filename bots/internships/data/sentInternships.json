@@ -193,5 +193,60 @@
     ],
     "applicationUrl": "https://apply.workable.com/elevate-semiconductor/j/F234DECA3C/apply",
     "datePosted": 1787366024
+  },
+  {
+    "id": "a96f8f9b-926d-483b-ba4f-ab46b0e78ac2",
+    "company": "Tesla",
+    "role": "Software Engineer Intern - Maps & Navigation Validation",
+    "location": "Palo Alto, CA",
+    "locations": [
+      "Palo Alto, CA"
+    ],
+    "applicationUrl": "https://www.tesla.com/careers/search/job/281271",
+    "datePosted": 1787772317
+  },
+  {
+    "id": "cb4c69f2-62ef-46ff-b70a-352ab1e61af2",
+    "company": "Tesla",
+    "role": "Embedded Software Engineer Intern - Firmware Platforms",
+    "location": "Palo Alto, CA",
+    "locations": [
+      "Palo Alto, CA"
+    ],
+    "applicationUrl": "https://www.tesla.com/careers/search/job/281102",
+    "datePosted": 1787772316
+  },
+  {
+    "id": "0ebaa63f-d5e3-410a-82b7-0234eb9a8e1a",
+    "company": "Tesla",
+    "role": "Fullstack Software Engineer Intern - Fleetnet - Fullstack Software Engineering",
+    "location": "Palo Alto, CA",
+    "locations": [
+      "Palo Alto, CA"
+    ],
+    "applicationUrl": "https://www.tesla.com/careers/search/job/281099",
+    "datePosted": 1787772314
+  },
+  {
+    "id": "6f67b1f9-a488-41fb-81ab-1c90fbd557d4",
+    "company": "Tesla",
+    "role": "Software Engineer Intern - Maps & Navigation - Robotaxi",
+    "location": "Palo Alto, CA",
+    "locations": [
+      "Palo Alto, CA"
+    ],
+    "applicationUrl": "https://www.tesla.com/careers/search/job/280960",
+    "datePosted": 1787772312
+  },
+  {
+    "id": "0b09ad76-6210-4b87-94c9-b662b170d268",
+    "company": "Tesla",
+    "role": "Android Engineer Intern - Mobile Software",
+    "location": "Palo Alto, CA",
+    "locations": [
+      "Palo Alto, CA"
+    ],
+    "applicationUrl": "https://www.tesla.com/careers/search/job/280605",
+    "datePosted": 1787772309
   }
 ]

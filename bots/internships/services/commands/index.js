@@ -17,7 +17,7 @@ const unmuteCommand = require("./unmuteCommand");
 const csCommand = require("./csCommand");
 const meCommand = require("./meCommand");
 const eeCommand = require("./eeCommand");
-const bmeCommand = require("./bmeCommand");
+const bmCommand = require("./bmCommand");
 
 /*
 Need to add:
@@ -38,7 +38,7 @@ const commands = [
     csCommand,
     meCommand,
     eeCommand,
-    bmeCommand,
+    bmCommand,
 ];
 
 const commandMap = new Map(

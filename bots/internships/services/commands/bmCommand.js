@@ -1,5 +1,5 @@
 const {
-    getCurrentBMEInternships,
+    getCurrentBMInternships,
 } = require("../getCurrentInternships");
 
 const {
@@ -12,15 +12,15 @@ const {
 } = require("../internshipDateFormatter");
 
 async function execute(message) {
-    const bmeInternships =
-        await getCurrentBMEInternships();
+    const bmInternships =
+        await getCurrentBMInternships();
 
     const {
         internshipsToSend,
         sentInternships,
         sentIds,
     } = await getInternshipsToSend(
-        bmeInternships,
+        bmInternships,
         5
     );
 
@@ -56,6 +56,6 @@ async function execute(message) {
 }
 
 module.exports = {
-    name: "/bme",
+    name: "/bm",
     execute,
 };

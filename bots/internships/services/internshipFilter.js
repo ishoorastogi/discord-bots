@@ -238,7 +238,7 @@ function isEEInternship(internship) {
     );
 }
 
-function isBMEInternship(internship) {
+function isBMInternship(internship) {
     const role = String(
         internship.role || ""
     ).toLowerCase();
@@ -472,12 +472,12 @@ function getTopEEInternships(internships, limit = 5) {
     });
 }
 
-function getTopBMEInternships(internships, limit = 5) {
+function getTopBMInternships(internships, limit = 5) {
     return getTopMatchingInternships({
         internships,
         limit,
-        predicate: isBMEInternship,
-        name: "getTopBMEInternships",
+        predicate: isBMInternship,
+        name: "getTopBMInternships",
     });
 }
 
@@ -489,13 +489,13 @@ module.exports = {
     getTopCSInternships,
     getTopMEInternships,
     getTopEEInternships,
-    getTopBMEInternships,
+    getTopBMInternships,
     isEngineeringInternship,
     isUSInternship,
     isCSInternship,
     isMEInternship,
     isEEInternship,
-    isBMEInternship,
+    isBMInternship,
     parsePostedDate,
     removeDuplicateInternships,
 };
