@@ -12,6 +12,7 @@ async function execute(message) {
             "`/sendmebm` - DM the previously sent Biomedical Engineering internships JSON file",
             "`/sendmeai` - DM the previously sent Artificial Intelligence internships JSON file",
             "`/sendmeds` - DM the previously sent Data Science internships JSON file",
+            "DM the bot owner if you have any suggestions for future commands!",
         ].join("\n")
     );
 }
