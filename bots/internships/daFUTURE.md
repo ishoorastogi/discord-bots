@@ -1,5 +1,5 @@
 # Future Plans .md
-### This is a small file that I'm going to keep with the intent of throwing ideas in whenever they come by
+#### This is a small file that I'm going to keep with the intent of throwing ideas in whenever they come by
 
 ## Commands
 `/latest` - Top 5 most recent engineering internships, irrespective of field
@@ -31,3 +31,5 @@ My plan:
 
 This should fix the remote update/deployment problem. I do NOT want to containerize/deploy on kubernetes, but if that's what the people want so be it.
 
+## Structure
+1. Should probably make the logger a little better and more accessible.
