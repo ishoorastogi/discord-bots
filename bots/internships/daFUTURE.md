@@ -4,9 +4,13 @@
 ## Commands
 `/latest` - Top 5 most recent engineering internships, irrespective of field
 
+`/deletelastx` - Remove the last 'x' number of sent internships from the send database
+
 `/ai` - Top 5 most recent Artificial Intelligence internships
 
 `/ds` - Top 5 most recent Data Science internships
+
+`/ce` - Top 5 most recent Computer Engineering internships (** IMPORTANT NOTE ** We HAVE to seperate ce from cs and ee. gotta find a way to accurately reflect that difference)
 
 `/sendmeme` - DM the previously sent Mechanical Engineering internships JSON file
 
@@ -17,6 +21,8 @@
 `/sendmeai` - DM the previously sent Artificial Intelligence internships JSON file
 
 `/sendmeds` - DM the previously sent Data Science internships JSON file
+
+`/sendmece` - DM the previously sent Computer Engineering internships
 
 ## Deployment
 So after thinking about it, I need a production/test environment if I want to get PNMs to access this.
