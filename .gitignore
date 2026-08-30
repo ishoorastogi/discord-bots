@@ -6,6 +6,4 @@ node_modules/
 npm-debug.log*
 logs/
 
-shared/config/env.js
-
 bots/internships/data/sentInternships.json
