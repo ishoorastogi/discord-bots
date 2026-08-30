@@ -24,14 +24,31 @@ async function readInternshipRepo() {
         );
     }
 
-    if (!response.data.content) {
-        throw new Error(`GitHub returned no content for ${repository.path}.`);
-    }
+    let content;
 
-    const content = Buffer.from(
-        response.data.content,
-        response.data.encoding || "base64"
-    ).toString("utf8");
+    if (response.data.content) {
+        content = Buffer.from(
+            response.data.content,
+            response.data.encoding || "base64"
+        ).toString("utf8");
+    } else if (response.data.download_url) {
+        const rawResponse = await fetch(
+            response.data.download_url
+        );
+
+        if (!rawResponse.ok) {
+            throw new Error(
+                `Failed to download raw ${repository.path}: ` +
+                `${rawResponse.status} ${rawResponse.statusText}`
+            );
+        }
+
+        content = await rawResponse.text();
+    } else {
+        throw new Error(
+            `GitHub returned no content for ${repository.path}.`
+        );
+    }
 
     return {
         content,

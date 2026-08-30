@@ -1,5 +1,10 @@
 const {
-    readSentInternships,
+    getCurrentEEInternships,
+} = require("../getCurrentInternships");
+
+const {
+    getInternshipsToSend,
+    saveShownInternships,
 } = require("../runInternshipDigest");
 
 const {
@@ -7,38 +12,26 @@ const {
 } = require("../internshipDateFormatter");
 
 async function execute(message) {
-    const sentInternships =
-        await readSentInternships();
+    const eeInternships =
+        await getCurrentEEInternships();
 
-    if (sentInternships.length === 0) {
+    const {
+        internshipsToSend,
+        sentInternships,
+        sentIds,
+    } = await getInternshipsToSend(eeInternships, 5);
+
+    if (internshipsToSend.length === 0) {
         await message.reply(
-            "No previously sent internships are available yet."
+            "No current Electrical Engineering internships were found."
         );
         return;
     }
 
-    const shuffled = [...sentInternships];
-
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const randomIndex = Math.floor(
-            Math.random() * (i + 1)
-        );
-
-        [
-            shuffled[i],
-            shuffled[randomIndex],
-        ] = [
-            shuffled[randomIndex],
-            shuffled[i],
-        ];
-    }
-
-    const randomInternships = shuffled.slice(0, 5);
-
     const response = [
-        "**Random Previously Posted Internships**",
+        "**Top 5 Electrical Engineering Internships**",
         "",
-        ...randomInternships.map(
+        ...internshipsToSend.map(
             (internship, index) =>
                 [
                     `**${index + 1}. ${internship.company}**`,
@@ -51,9 +44,15 @@ async function execute(message) {
     ].join("\n\n");
 
     await message.reply(response);
+
+    await saveShownInternships({
+        internshipsToSend,
+        sentInternships,
+        sentIds,
+    });
 }
 
 module.exports = {
-    name: "/random",
+    name: "/ee",
     execute,
 };

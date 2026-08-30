@@ -1,5 +1,5 @@
 const {
-    readInternshipRepository,
+    readInternshipRepo,
 } = require("../readInternshipRepo");
 
 const {
@@ -9,7 +9,7 @@ const {
 
 async function testRepositoryContent() {
     try {
-        const file = await readInternshipRepository();
+        const file = await readInternshipRepo();
 
         logInfo(`Read repository file: ${file.path}`);
         logInfo(`GitHub-reported size: ${file.size} bytes`);
@@ -18,6 +18,9 @@ async function testRepositoryContent() {
 
         const preview = file.content.slice(0, 300).replace(/\n/g, "\\n");
         logInfo(`Content preview: ${preview}`);
+
+        JSON.parse(file.content);
+        logInfo("Repository content is valid JSON.");
     } catch (error) {
         logError("Failed to read internship repository content", error);
         process.exitCode = 1;

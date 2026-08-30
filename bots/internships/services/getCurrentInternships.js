@@ -8,7 +8,24 @@ const {
 
 const {
     getTopInternships,
+    getTopCSInternships,
+    getTopMEInternships,
+    getTopEEInternships,
+    getTopBMInternships,
 } = require("./internshipFilter");
+
+async function getRankedInternships(rankInternships) {
+    const repositoryFile = await readInternshipRepo();
+
+    const internships = parseInternships(
+        repositoryFile.content
+    );
+
+    return rankInternships(
+        internships,
+        internships.length
+    );
+}
 
 /**
  * Fetches the internship repository and returns all
@@ -20,18 +37,51 @@ const {
  * @returns {Promise<Array<object>>}
  */
 async function getCurrentInternships() {
-    const repositoryFile = await readInternshipRepo();
+    return getRankedInternships(getTopInternships);
+}
 
-    const internships = parseInternships(
-        repositoryFile.content
+/**
+ * Fetches the internship repository and returns all
+ * currently valid Computer Science internships ranked
+ * newest-first.
+ *
+ * This function does not send Discord messages and
+ * does not modify sent internship history.
+ *
+ * @returns {Promise<Array<object>>}
+ */
+async function getCurrentCSInternships() {
+    return getRankedInternships(getTopCSInternships);
+}
+
+async function getCurrentMEInternships() {
+    return getRankedInternships(getTopMEInternships);
+}
+
+async function getCurrentEEInternships() {
+    const internships =
+        await getCurrentInternships();
+
+    return getTopEEInternships(
+        internships,
+        internships.length
     );
+}
 
-    return getTopInternships(
+async function getCurrentBMInternships() {
+    const internships =
+        await getCurrentInternships();
+
+    return getTopBMInternships(
         internships,
         internships.length
     );
 }
 
 module.exports = {
+    getCurrentCSInternships,
     getCurrentInternships,
+    getCurrentMEInternships,
+    getCurrentEEInternships,
+    getCurrentBMInternships,
 };

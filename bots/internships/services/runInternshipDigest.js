@@ -3,6 +3,7 @@ const path = require("path");
 
 const {
     createInternshipId,
+    getInternshipIdentityKeys,
 } = require("./internshipFilter");
 
 const {
@@ -53,12 +54,33 @@ function getSavedInternshipId(internship) {
     return createInternshipId(internship);
 }
 
+function addIdentityKeys(target, internship) {
+    for (const key of getInternshipIdentityKeys(
+        internship
+    )) {
+        target.add(key);
+    }
+}
+
+function hasAnyIdentityKey(target, internship) {
+    for (const key of getInternshipIdentityKeys(
+        internship
+    )) {
+        if (target.has(key)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function createSavedInternship(internship) {
     return {
         id: createInternshipId(internship),
         company: internship.company,
         role: internship.role,
         location: internship.location,
+        locations: internship.locations,
         applicationUrl: internship.applicationUrl,
         datePosted: internship.datePosted,
     };
@@ -72,24 +94,20 @@ async function writeSentInternships(internships) {
     );
 }
 
-async function runInternshipDigest({
-    client,
-    channelId,
+function selectInternshipsFromHistory({
+    internships,
+    sentInternships,
     limit = 5,
 }) {
-    const rankedInternships =
-        await getCurrentInternships();
+    const sentIds = new Set();
 
-    const sentInternships =
-        await readSentInternships();
+    for (const internship of sentInternships) {
+        addIdentityKeys(sentIds, internship);
+    }
 
-    const sentIds = new Set(
-        sentInternships.map(getSavedInternshipId)
-    );
-
-    const newInternships = rankedInternships.filter(
+    const newInternships = internships.filter(
         (internship) =>
-            !sentIds.has(createInternshipId(internship))
+            !hasAnyIdentityKey(sentIds, internship)
     );
 
     const internshipsToSend = newInternships.slice(
@@ -101,9 +119,9 @@ async function runInternshipDigest({
         const remainingSlots =
             limit - internshipsToSend.length;
 
-        const fallbackInternships = rankedInternships
+        const fallbackInternships = internships
             .filter((internship) =>
-                sentIds.has(createInternshipId(internship))
+                hasAnyIdentityKey(sentIds, internship)
             )
             .slice(0, remainingSlots);
 
@@ -112,21 +130,47 @@ async function runInternshipDigest({
         );
     }
 
-    await sendInternshipNotification(
-        client,
-        channelId,
-        internshipsToSend
-    );
+    return {
+        internshipsToSend,
+        sentIds,
+    };
+}
 
+async function getInternshipsToSend(
+    internships,
+    limit = 5
+) {
+    const sentInternships =
+        await readSentInternships();
+
+    const {
+        internshipsToSend,
+        sentIds,
+    } = selectInternshipsFromHistory({
+        internships,
+        sentInternships,
+        limit,
+    });
+
+    return {
+        internshipsToSend,
+        sentInternships,
+        sentIds,
+    };
+}
+
+async function saveShownInternships({
+    internshipsToSend,
+    sentInternships,
+    sentIds,
+}) {
     for (const internship of internshipsToSend) {
-        const id = createInternshipId(internship);
-
-        if (!sentIds.has(id)) {
+        if (!hasAnyIdentityKey(sentIds, internship)) {
             sentInternships.push(
                 createSavedInternship(internship)
             );
 
-            sentIds.add(id);
+            addIdentityKeys(sentIds, internship);
         }
     }
 
@@ -136,6 +180,36 @@ async function runInternshipDigest({
                 typeof internship !== "string"
         )
     );
+}
+
+async function runInternshipDigest({
+    client,
+    channelId,
+    limit = 5,
+}) {
+    const rankedInternships =
+        await getCurrentInternships();
+
+    const {
+        internshipsToSend,
+        sentInternships,
+        sentIds,
+    } = await getInternshipsToSend(
+        rankedInternships,
+        limit
+    );
+
+    await sendInternshipNotification(
+        client,
+        channelId,
+        internshipsToSend
+    );
+
+    await saveShownInternships({
+        internshipsToSend,
+        sentInternships,
+        sentIds,
+    });
 
     return internshipsToSend;
 }
@@ -143,7 +217,9 @@ async function runInternshipDigest({
 module.exports = {
     createSavedInternship,
     getSavedInternshipId,
+    getInternshipsToSend,
     readSentInternships,
     runInternshipDigest,
+    saveShownInternships,
     writeSentInternships,
 };

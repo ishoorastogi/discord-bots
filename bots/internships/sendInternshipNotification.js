@@ -4,6 +4,10 @@ const {
     sendMessage,
 } = require("../../shared/discord/sendMessage");
 
+const {
+    formatInternshipDate,
+} = require("./services/internshipDateFormatter");
+
 /**
  * Builds a Discord embed containing the selected internships.
  *
@@ -44,7 +48,7 @@ function buildInternshipEmbed(internships) {
             internship.location || "Location not provided";
 
         const datePosted =
-            internship.datePosted || "Date not provided";
+            formatInternshipDate(internship);
 
         embed.addFields({
             name:
