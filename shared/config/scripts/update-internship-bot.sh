@@ -6,7 +6,7 @@ set -euo pipefail
 
 #find the repo root
 SCRIPT_DIR="$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_DIR="$(cd -- "$SCRIPT_DIR"/.. && pwd )"
+REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
 
 cd "$REPO_DIR"
 echo "*** Updating internship-bot ***"
