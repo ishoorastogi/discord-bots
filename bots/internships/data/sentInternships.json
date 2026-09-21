@@ -475,5 +475,121 @@
     ],
     "applicationUrl": "https://apply.careers.microsoft.com/careers/job/1970393556958170",
     "datePosted": 1787751954
+  },
+  {
+    "id": "cd9a9dea-bbcd-4793-b6b4-a65c46522966",
+    "company": "Lazard",
+    "role": "AI Engineer Intern",
+    "location": "NYC",
+    "locations": [
+      "NYC"
+    ],
+    "applicationUrl": "https://icbpjb.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/LazardProfessionalCareers/job/6606",
+    "datePosted": 1790000198
+  },
+  {
+    "id": "da61d135-a599-4c02-89dc-afe22196934e",
+    "company": "Lazard",
+    "role": "Data Engineer Intern",
+    "location": "NYC",
+    "locations": [
+      "NYC"
+    ],
+    "applicationUrl": "https://icbpjb.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/LazardProfessionalCareers/job/6605",
+    "datePosted": 1790000198
+  },
+  {
+    "id": "f6903e96-db33-4663-8233-9bbdef82cba4",
+    "company": "Charles Schwab",
+    "role": "Software Engineering Intern - Model Risk",
+    "location": "Southlake, TX",
+    "locations": [
+      "Southlake, TX"
+    ],
+    "applicationUrl": "https://career-schwab.icims.com/jobs/127127/job?mobile=true&needsRedirect=false",
+    "datePosted": 1789999752
+  },
+  {
+    "id": "26e7fc97-03fa-4445-8338-fdad5cb0812c",
+    "company": "Mercury",
+    "role": "Software Engineering Intern - Spring 2027",
+    "location": "SF, Remote in USA, NYC, Portland, OR, Remote in Canada",
+    "locations": [
+      "SF",
+      "Remote in USA",
+      "NYC",
+      "Portland, OR",
+      "Remote in Canada"
+    ],
+    "applicationUrl": "https://job-boards.greenhouse.io/mercury/jobs/6199367004",
+    "datePosted": 1789982316
+  },
+  {
+    "id": "2e8bb17d-0726-4482-af62-5f868bede92c",
+    "company": "AutoZone",
+    "role": "Data Science Intern",
+    "location": "Memphis, TN",
+    "locations": [
+      "Memphis, TN"
+    ],
+    "applicationUrl": "https://egud.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/155461",
+    "datePosted": 1789971425
+  },
+  {
+    "id": "7d5c4b26-9d58-4de0-b0fe-0ee845b9d45e",
+    "company": "AutoZone",
+    "role": "Information Technology Intern",
+    "location": "Memphis, TN",
+    "locations": [
+      "Memphis, TN"
+    ],
+    "applicationUrl": "https://egud.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/155451",
+    "datePosted": 1789971421
+  },
+  {
+    "id": "0a703703-0be7-4f89-89c2-56b288638eef",
+    "company": "Interstates",
+    "role": "Software Developer Intern",
+    "location": "Sioux Center, IA, Sioux Falls, SD",
+    "locations": [
+      "Sioux Center, IA",
+      "Sioux Falls, SD"
+    ],
+    "applicationUrl": "https://www.interstates.com/careers/jobs?gh_jid=4218341009&gh_jid=4218341009",
+    "datePosted": 1789970964
+  },
+  {
+    "id": "db2027d0-629e-474c-b927-fb0ffc7d9e62",
+    "company": "Interstates",
+    "role": "Software Developer Intern",
+    "location": "Sioux Center, IA, Sioux Falls, SD",
+    "locations": [
+      "Sioux Center, IA",
+      "Sioux Falls, SD"
+    ],
+    "applicationUrl": "https://www.interstates.com/careers/jobs?gh_jid=4218343009&gh_jid=4218343009",
+    "datePosted": 1789970964
+  },
+  {
+    "id": "671df4e5-0754-4a2b-b3e8-9efd0533222b",
+    "company": "Illinois Tool Works",
+    "role": "Software Engineer Intern",
+    "location": "Rogers, MN",
+    "locations": [
+      "Rogers, MN"
+    ],
+    "applicationUrl": "https://careers.itw.com/global/en/job/JR10129",
+    "datePosted": 1789953288
+  },
+  {
+    "id": "2a319a5b-a682-4c9d-9bc1-e3d5f7393fe9",
+    "company": "Northrop Grumman",
+    "role": "Digital Engineer Intern",
+    "location": "Baltimore, MD",
+    "locations": [
+      "Baltimore, MD"
+    ],
+    "applicationUrl": "https://ngc.wd1.myworkdayjobs.com/Northrop_Grumman_External_Site/job/United-States-Maryland-Baltimore/XMLNAME-2027-Digital-Engineer-Intern---Baltimore-MD_R10251150-1",
+    "datePosted": 1789948800
   }
 ]
