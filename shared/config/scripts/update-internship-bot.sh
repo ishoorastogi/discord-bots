@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This script is used to update the internship-bot application using pm2.
+
 set -euo pipefail
 
 #find the repo root
