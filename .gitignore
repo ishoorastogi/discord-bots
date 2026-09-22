@@ -7,4 +7,4 @@ npm-debug.log*
 logs/
 
 bots/internships/data/sentInternships.json
-*logs/
+*.logs/
