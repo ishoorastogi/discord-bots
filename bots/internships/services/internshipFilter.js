@@ -278,6 +278,46 @@ function isBMInternship(internship) {
     );
 }
 
+function isCEInternship(internship) {
+    const role = String(
+        internship.role || ""
+    ).toLowerCase();
+
+    const ceKeywords = [
+        "computer engineering",
+        "software engineering",
+        "electrical engineering",
+        "mechanical engineering",
+        "civil engineering",
+        "aerospace engineering",
+        "nuclear engineering",
+        "chemical engineering",
+        "biomedical engineering",
+        "bioengineering",
+        "biomechanical",
+        "medical device",
+        "medical devices",
+        "biomaterials",
+        "biomechanics",
+        "clinical engineering",
+        "rehabilitation engineering",
+        "prosthetics",
+        "prosthetic",
+        "orthotics",
+        "bioinstrumentation",
+        "biosensors",
+        "biotechnology",
+        "biotech",
+        "medical imaging",
+        "neural engineering",
+        "tissue engineering",
+    ];
+
+    return ceKeywords.some((keyword) =>
+        role.includes(keyword)
+    );
+}
+
 function getLocationValues(internship) {
     if (Array.isArray(internship?.locations)) {
         return internship.locations
@@ -489,6 +529,15 @@ function getTopBMInternships(internships, limit = 5) {
     });
 }
 
+function getTopCEInternships(internships, limit = 5) {
+    return getTopMatchingInternships({
+        internships,
+        limit,
+        predicate: isCEInternship,
+        name: "getTopCEInternships",
+    });
+}
+
 module.exports = {
     createInternshipId,
     createLegacyInternshipId,
@@ -496,6 +545,7 @@ module.exports = {
     getTopInternships,
     getTopCSInternships,
     getTopMEInternships,
+    getTopCEInternships,
     getTopEEInternships,
     getTopBMInternships,
     isEngineeringInternship,
@@ -504,6 +554,7 @@ module.exports = {
     isMEInternship,
     isEEInternship,
     isBMInternship,
+    isCEInternship,
     parsePostedDate,
     removeDuplicateInternships,
 };
