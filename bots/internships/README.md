@@ -37,13 +37,13 @@ Install dependencies from the workspace root:
 npm install
 ```
 
-Create a `.env` file from the example:
+Create a bot-specific `.env` file from the example:
 
 ```sh
-cp .env.example .env
+cp bots/internships/.env.example bots/internships/.env
 ```
 
-Fill in the Discord and GitHub values in `.env`.
+Fill in the Discord and GitHub values in `bots/internships/.env`.
 
 ## Required Discord Setup
 
@@ -77,7 +77,7 @@ should be posted.
 | `INTERNSHIP_TIMEZONE` | No | `America/Chicago` | Timezone used by the cron schedule. |
 | `RUN_ON_STARTUP` | No | `true` | Runs a digest immediately after the bot logs in. |
 | `SEND_STARTUP_TEST_MESSAGE` | No | `false` | Loaded by config, but not used by the current entry point. |
-| `DISCORD_GUILD_ID` | No | None | Present in `.env.example`, but not used by the current entry point. |
+| `DISCORD_GUILD_ID` | No | None | Present in `bots/internships/.env.example`, but not used by the current entry point. |
 
 ## Running The Bot
 
@@ -153,8 +153,8 @@ benefit from `GITHUB_TOKEN`.
 
 ## Troubleshooting
 
-- `Missing required environment variable`: check that `.env` exists at the
-  workspace root and includes all required values.
+- `Missing required environment variable`: check that `bots/internships/.env`
+  exists and includes all required values.
 - Invalid Discord token: verify `DISCORD_TOKEN` is the bot token, not the client
   secret or application ID.
 - Unknown Channel or Missing Access: verify `INTERNSHIP_CHANNEL_ID`, confirm the

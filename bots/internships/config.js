@@ -1,6 +1,8 @@
+const path = require("path");
 const cron = require("node-cron");
 
 const {
+  loadEnvFile,
   getEnv,
   getOptionalEnv,
 } = require("../../shared/config/env");
@@ -8,6 +10,8 @@ const {
 const {
   logInfo,
 } = require("../../shared/utils/logger");
+
+loadEnvFile(path.join(__dirname, ".env"));
 
 function getOptionalEnvWithDefault(name, defaultValue = "") {
   const value = getOptionalEnv(name);
