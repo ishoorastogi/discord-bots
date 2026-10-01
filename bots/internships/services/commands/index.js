@@ -19,6 +19,7 @@ const csCommand = require("./csCommand");
 const meCommand = require("./meCommand");
 const eeCommand = require("./eeCommand");
 const bmCommand = require("./bmCommand");
+const ceCommand = require("./ceCommand");
 
 /*
 Need to add:
@@ -40,6 +41,7 @@ const commands = [
     meCommand,
     eeCommand,
     bmCommand,
+    ceCommand,  
     futureCommand,
 ];
 
