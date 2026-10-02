@@ -19,6 +19,9 @@ command_exists() {
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+INTERNSHIP_ENV_DIR="$SCRIPT_DIR/bots/internships"
+INTERNSHIP_ENV_FILE="$INTERNSHIP_ENV_DIR/.env"
+INTERNSHIP_ENV_EXAMPLE="$INTERNSHIP_ENV_DIR/.env.example"
 
 log "Checking required tools"
 
@@ -57,14 +60,14 @@ fi
 
 log "Preparing environment file"
 
-if [[ -f .env ]]; then
-  printf '.env already exists; leaving it unchanged.\n'
-elif [[ -f .env.example ]]; then
-  cp .env.example .env
-  chmod 600 .env
-  printf 'Created .env from .env.example. Fill in Discord and GitHub values before starting the bot.\n'
+if [[ -f "$INTERNSHIP_ENV_FILE" ]]; then
+  printf 'bots/internships/.env already exists; leaving it unchanged.\n'
+elif [[ -f "$INTERNSHIP_ENV_EXAMPLE" ]]; then
+  cp "$INTERNSHIP_ENV_EXAMPLE" "$INTERNSHIP_ENV_FILE"
+  chmod 600 "$INTERNSHIP_ENV_FILE"
+  printf 'Created bots/internships/.env from bots/internships/.env.example. Fill in Discord and GitHub values before starting the bot.\n'
 else
-  printf 'No .env.example found; skipping .env creation.\n'
+  printf 'No bots/internships/.env.example found; skipping .env creation.\n'
 fi
 
 log "Installation complete"

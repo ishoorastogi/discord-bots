@@ -1,4 +1,11 @@
-require("dotenv").config();
+const dotenv = require("dotenv");
+
+function loadEnvFile(envPath) {
+  dotenv.config({
+    path: envPath,
+    quiet: true,
+  });
+}
 
 function getEnv(name) {
   const value = process.env[name];
@@ -23,6 +30,7 @@ function getOptionalEnv(name) {
 }
 
 module.exports = {
+  loadEnvFile,
   getEnv,
   getOptionalEnv,
 };
