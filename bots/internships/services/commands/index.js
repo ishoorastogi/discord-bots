@@ -4,6 +4,7 @@ const statusCommand = require("./statusCommand");
 
 //Show available commands
 const randomCommand = require("./randomCommand");
+const latestCommand = require("./latestCommand");
 const sendMeAllCommand = require("./sendMeAllCommand");
 const sendmecsCommand = require("./sendmecsCommand");
 const futureCommand = require("./futureCommand");
@@ -31,6 +32,7 @@ const commands = [
     helpCommand,
     statusCommand,
     randomCommand,
+    latestCommand,
     sendMeAllCommand,
     sendmecsCommand,
     killCommand,
