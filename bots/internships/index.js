@@ -1,5 +1,6 @@
 const cron = require("node-cron");
 const { Events } = require("discord.js");
+const BackendClient = require("./api/backendClient");
 
 const {
   isMuted,
@@ -28,6 +29,11 @@ const {
 
 const config = loadConfig();
 const client = createClient();
+
+const backend = new BackendClient(
+    process.env.BACKEND_HOST,
+    Number(process.env.BACKEND_PORT)
+);
 
 async function runDigest() {
   try {
@@ -89,5 +95,7 @@ client.on(Events.MessageCreate, async (message) => {
     client
   );
 });
+
+backend.connect();
 
 client.login(config.discordToken);
