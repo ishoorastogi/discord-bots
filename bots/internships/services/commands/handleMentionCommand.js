@@ -6,7 +6,7 @@ const {
     commandMap,
 } = require("./index");
 
-async function handleMentionCommand(message, client) {
+async function handleMentionCommand(message, client, backend) {
     if (message.author.bot) {
         return;
     }
@@ -15,10 +15,12 @@ async function handleMentionCommand(message, client) {
         return;
     }
 
-    const commandName = message.content
+    const content = message.content
         .replace(/<@!?\d+>/g, "")
-        .trim()
-        .toLowerCase();
+        .trim();
+
+    const [rawCommandName, ...args] = content.split(/\s+/);
+    const commandName = rawCommandName?.toLowerCase();
 
     const command = commandMap.get(commandName);
 
@@ -30,7 +32,7 @@ async function handleMentionCommand(message, client) {
     }
 
     try {
-        await command.execute(message, client);
+        await command.execute(message, client, backend, args);
     } catch (error) {
         logError(
             `Failed to execute ${commandName}`,

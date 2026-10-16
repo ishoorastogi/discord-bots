@@ -22,6 +22,9 @@ const eeCommand = require("./eeCommand");
 const bmCommand = require("./bmCommand");
 const ceCommand = require("./ceCommand");
 
+// Resume command
+const resumeCommand = require("./resumeCommand");
+
 /*
 Need to add:
 - ai
@@ -45,6 +48,7 @@ const commands = [
     bmCommand,
     ceCommand,  
     futureCommand,
+    resumeCommand,
 ];
 
 const commandMap = new Map(
