@@ -1,0 +1,468 @@
+flowchart TD
+
+    subgraph INPUT["INPUT SOURCES"]
+        RESUME["Discord /resume"]
+        JOB["GitHub Internship Repository"]
+    end
+
+    subgraph FRONTEND["NODE.JS FRONTEND - DISCORD BOT"]
+        BOT["Discord Bot"]
+        API_CLIENT["Python Backend API Client"]
+        POLLER["Notification Poller"]
+        MESSAGE_HANDLER["Discord Message Handler"]
+        DISCORD["Discord Server"]
+    end
+
+    subgraph BACKEND["PYTHON BACKEND - FASTAPI"]
+
+        API["Backend REST API"]
+
+        subgraph RESUME_PIPE["RESUME PROCESSING PIPELINE"]
+            RQ["Resume Queue"]
+            RP["PDF Parsing Worker"]
+            RN["Resume Normalization Worker"]
+            RE["Profile Extraction Worker"]
+            RV["Embedding Worker"]
+
+            RQ --> RP --> RN --> RE --> RV
+        end
+
+        subgraph JOB_PIPE["INTERNSHIP PROCESSING PIPELINE"]
+            JQ["Internship Queue"]
+            JP["Internship Parsing Worker"]
+            JN["Internship Normalization Worker"]
+            JE["Requirements Extraction Worker"]
+            JV["Embedding Worker"]
+
+            JQ --> JP --> JN --> JE --> JV
+        end
+
+        subgraph MATCHING["CONCURRENT MATCHING ENGINE"]
+            MQ["Matching Queue"]
+            POOL["Bounded Matching Thread Pool"]
+
+            ELIGIBILITY["Eligibility Filtering"]
+            SKILLS["Explicit Skill Matching"]
+            SEMANTIC["Semantic Vector Similarity"]
+            WEIGHTS["Weighted Scoring"]
+            THRESHOLD{"Score >= Threshold?"}
+            DUPLICATE{"Already Notified or Queued?"}
+            RESULT["Match Result"]
+
+            MQ --> POOL
+            POOL --> ELIGIBILITY
+            ELIGIBILITY --> SKILLS
+            SKILLS --> SEMANTIC
+            SEMANTIC --> WEIGHTS
+            WEIGHTS --> THRESHOLD
+            THRESHOLD -->|"Yes"| DUPLICATE
+            THRESHOLD -->|"No"| NO_MATCH["Discard Match"]
+            DUPLICATE -->|"No"| RESULT
+            DUPLICATE -->|"Yes"| SKIP["Skip Duplicate"]
+        end
+
+        subgraph NOTIFICATION["ASYNCHRONOUS NOTIFICATION SYSTEM"]
+            NOTIFICATION_REQUEST["Notification Request"]
+            PENDING[("Pending Notifications")]
+            FETCH_PENDING["Fetch and Claim Pending Notifications"]
+            DELIVERY_RESULT["Process Delivery Confirmation"]
+        end
+
+        subgraph DB_ACCESS["SHARED DATABASE ACCESS LAYER"]
+            WQ["Shared Database Write Queue"]
+            WRITER["Database Writer Thread"]
+            DBAPI["Database API Layer<br/>Transactions + CRUD + Validation"]
+
+            WQ --> WRITER
+            WRITER -->|"Write Commands"| DBAPI
+        end
+
+        subgraph DATABASE["POSTGRESQL + PGVECTOR"]
+            USERS[("User Profiles")]
+            RESUMES[("Normalized Resume Data")]
+            RVECTORS[("Resume Section Embeddings")]
+            JOBS[("Normalized Internships")]
+            JVECTORS[("Internship Section Embeddings")]
+            HISTORY[("Match History")]
+            NOTIFICATIONS[("Notification Outbox<br/>Pending / Claimed / Sent / Failed")]
+        end
+
+    end
+
+
+    RESUME --> BOT
+    JOB --> BOT
+
+    BOT --> API_CLIENT
+    API_CLIENT -->|"Submit Resume or Internship"| API
+
+    API -->|"Resume Upload"| RQ
+    API -->|"New Internship"| JQ
+
+    %% SHARED DATABASE WRITER
+    RV -->|"Resume Profile + Embeddings"| WQ
+    JV -->|"Internship Data + Embeddings"| WQ
+
+    %% DATABASE API WRITES
+    DBAPI -->|"UPSERT"| USERS
+    DBAPI -->|"UPSERT"| RESUMES
+    DBAPI -->|"UPSERT"| RVECTORS
+    DBAPI -->|"UPSERT"| JOBS
+    DBAPI -->|"UPSERT"| JVECTORS
+    DBAPI -->|"INSERT / UPDATE"| HISTORY
+    DBAPI -->|"INSERT / UPDATE"| NOTIFICATIONS
+
+    %% MATCHING TRIGGERS
+    DBAPI -->|"Resume Saved: Match Active Jobs"| MQ
+    DBAPI -->|"Internship Saved: Match Eligible Users"| MQ
+
+    %% MATCHING DATABASE READS
+    ELIGIBILITY -->|"Read Profiles and Jobs"| DBAPI
+    SKILLS -->|"Read Normalized Data"| DBAPI
+    SEMANTIC -->|"Read / Compare Embeddings"| DBAPI
+    DUPLICATE -->|"Check Match History and Outbox"| DBAPI
+
+    %% MATCH RESULTS RETURN TO BACKEND
+    RESULT -->|"Discord ID + Internship + Score"| API
+
+    %% BACKEND CREATES NOTIFICATION REQUEST
+    API --> NOTIFICATION_REQUEST
+    NOTIFICATION_REQUEST -->|"Queue Persistent Notification"| WQ
+
+    %% DATABASE STORES PENDING NOTIFICATIONS
+    NOTIFICATIONS --> PENDING
+
+    %% FRONTEND POLLS BACKEND
+    POLLER -->|"Periodic GET /notifications/pending"| API_CLIENT
+    API_CLIENT -->|"HTTP Poll Request"| API
+
+    %% BACKEND FETCHES PENDING NOTIFICATIONS
+    API --> FETCH_PENDING
+    FETCH_PENDING -->|"Atomic Claim via Database API"| DBAPI
+    DBAPI -->|"Claimed Notification Batch"| FETCH_PENDING
+    FETCH_PENDING -->|"Return Notification Requests"| API
+    API -->|"Notification Batch"| API_CLIENT
+
+    %% FRONTEND SENDS MESSAGES
+    API_CLIENT --> MESSAGE_HANDLER
+    MESSAGE_HANDLER -->|"Build Embed + Mention User"| BOT
+    BOT -->|"Send Discord Message"| DISCORD
+
+    %% SUCCESSFUL DELIVERY
+    DISCORD -->|"Message Sent Successfully"| BOT
+    BOT -->|"Delivery Confirmation + Message ID"| API_CLIENT
+    API_CLIENT -->|"POST /notifications/confirm"| API
+    API --> DELIVERY_RESULT
+    DELIVERY_RESULT -->|"Mark Sent + Update History"| WQ
+
+    %% FAILED DELIVERY
+    BOT -->|"Discord Send Failed"| API_CLIENT
+    API_CLIENT -->|"POST /notifications/fail"| API
+    API -->|"Queue Failure / Retry Status"| WQ
+
+    %% =====================================================
+    %% NEW: FRONTEND RUNTIME ARCHITECTURE
+    %% =====================================================
+
+    subgraph FRONTEND_RUNTIME["FRONTEND - RUNTIME AND CONFIGURATION"]
+        PACKAGE["package.json<br/>npm run start:internships"]
+
+        ENTRY["bots/internships/index.js<br/>Application Entry Point"]
+
+        ENV["shared/config/env.js<br/>Environment Loader"]
+
+        CONFIG["bots/internships/config.js<br/>Bot Configuration"]
+
+        CREATE_CLIENT["shared/discord/createClient.js<br/>Discord Client Factory"]
+
+        LOGIN["Discord Login<br/>DISCORD_TOKEN"]
+
+        READY["ClientReady Event"]
+
+        MESSAGE_CREATE["MessageCreate Event"]
+
+        CRON["node-cron<br/>Scheduled Digest"]
+
+        STARTUP["RUN_ON_STARTUP<br/>Optional Initial Digest"]
+
+        PACKAGE --> ENTRY
+        ENTRY --> ENV
+        ENV --> CONFIG
+        CONFIG --> CREATE_CLIENT
+        CREATE_CLIENT --> LOGIN
+        LOGIN --> READY
+        LOGIN --> MESSAGE_CREATE
+
+        READY --> CRON
+        READY --> STARTUP
+    end
+
+    %% =====================================================
+    %% NEW: DISCORD COMMAND ARCHITECTURE
+    %% =====================================================
+
+    subgraph FRONTEND_COMMANDS["FRONTEND - COMMAND AND EVENT HANDLING"]
+
+        MENTION["handleMentionCommand.js<br/>Parse Bot Mention"]
+
+        COMMAND_MAP["commands/index.js<br/>Command Map"]
+
+        IGNORE{"Valid Bot Mention?"}
+
+        COMMAND_EXEC["command.execute<br/>message, client"]
+
+        subgraph PUBLIC_COMMANDS["PUBLIC COMMANDS"]
+            HELP["/help"]
+            STATUS["/status"]
+            CS["/cs"]
+            ME["/me"]
+            EE["/ee"]
+            BM["/bm"]
+            RANDOM["/random"]
+            SENDALL["/sendmeall"]
+            SENDCS["/sendmecs"]
+            FUTURE["/future"]
+            RESUME_COMMAND["/resume"]
+        end
+
+        subgraph OWNER_COMMANDS["OWNER-ONLY COMMANDS"]
+            MUTE["/mute"]
+            UNMUTE["/unmute"]
+            CLEAR["/clear"]
+            KILL["/kill"]
+        end
+
+        MESSAGE_CREATE --> MENTION
+        MENTION --> IGNORE
+
+        IGNORE -->|"No"| IGNORE_MESSAGE["Ignore Message"]
+        IGNORE -->|"Yes"| COMMAND_MAP
+
+        COMMAND_MAP --> COMMAND_EXEC
+
+        COMMAND_EXEC --> HELP
+        COMMAND_EXEC --> STATUS
+        COMMAND_EXEC --> CS
+        COMMAND_EXEC --> ME
+        COMMAND_EXEC --> EE
+        COMMAND_EXEC --> BM
+        COMMAND_EXEC --> RANDOM
+        COMMAND_EXEC --> SENDALL
+        COMMAND_EXEC --> SENDCS
+        COMMAND_EXEC --> FUTURE
+        COMMAND_EXEC --> RESUME_COMMAND
+
+        COMMAND_EXEC --> MUTE
+        COMMAND_EXEC --> UNMUTE
+        COMMAND_EXEC --> CLEAR
+        COMMAND_EXEC --> KILL
+    end
+
+    %% =====================================================
+    %% NEW: RESUME COMMAND HANDLER
+    %% =====================================================
+
+    subgraph FRONTEND_RESUME["FRONTEND - RESUME SUBMISSION"]
+        RESUME_HANDLER["Resume Command Handler"]
+
+        VALIDATE_FILE["Validate Attachment<br/>PDF / File Size"]
+
+        EXTRACT_ID["Extract Discord User ID"]
+
+        PACKAGE_RESUME["Package Resume Request<br/>PDF + Discord ID"]
+
+        RESUME_COMMAND --> RESUME_HANDLER
+        RESUME_HANDLER --> VALIDATE_FILE
+        VALIDATE_FILE --> EXTRACT_ID
+        EXTRACT_ID --> PACKAGE_RESUME
+    end
+
+    PACKAGE_RESUME --> API_CLIENT
+
+    %% =====================================================
+    %% NEW: SCHEDULED INTERNSHIP DIGEST
+    %% =====================================================
+
+    subgraph FRONTEND_DIGEST["FRONTEND - INTERNSHIP INGESTION"]
+
+        RUN_DIGEST["runDigest"]
+
+        MUTED{"Bot Muted?"}
+
+        DIGEST["runInternshipDigest.js"]
+
+        CURRENT["getCurrentInternships.js"]
+
+        READ_REPO["readInternshipRepo.js"]
+
+        PARSER["internshipParser.js"]
+
+        DATE_FORMAT["internshipDateFormatter.js"]
+
+        FILTER["internshipFilter.js<br/>US + Engineering + Active"]
+
+        NEW_JOB{"New Internship?"}
+
+        CRON --> RUN_DIGEST
+        STARTUP --> RUN_DIGEST
+
+        RUN_DIGEST --> MUTED
+
+        MUTED -->|"Yes"| SKIP_DIGEST["Skip Digest"]
+        MUTED -->|"No"| DIGEST
+
+        DIGEST --> CURRENT
+        CURRENT --> READ_REPO
+
+        PARSER --> DATE_FORMAT
+        DATE_FORMAT --> FILTER
+        FILTER --> NEW_JOB
+    end
+
+    %% =====================================================
+    %% NEW: GITHUB DATA SOURCE
+    %% =====================================================
+
+    subgraph GITHUB_SOURCE["EXTERNAL - GITHUB DATA SOURCE"]
+
+        OCTOKIT["shared/github/githubClient.js<br/>Octokit"]
+
+        GITHUB_API["GitHub REST API"]
+
+        SIMPLIFY["SimplifyJobs/Summer2027-Internships"]
+
+        LISTINGS[".github/scripts/listings.json"]
+
+        OCTOKIT --> GITHUB_API
+        GITHUB_API --> SIMPLIFY
+        SIMPLIFY --> LISTINGS
+    end
+
+    READ_REPO --> OCTOKIT
+    LISTINGS --> PARSER
+
+    NEW_JOB -->|"Yes"| API_CLIENT
+    NEW_JOB -->|"No"| SKIP_EXISTING["Skip Existing Internship"]
+
+    %% =====================================================
+    %% NEW: FRONTEND LOCAL STATE
+    %% =====================================================
+
+    subgraph FRONTEND_STATE["FRONTEND - LOCAL PERSISTENT STATE"]
+
+        BOT_STATE[("botState.json<br/>Mute / Unmute")]
+
+        SENT_STATE[("sentInternships.json<br/>Previously Sent Internships")]
+
+    end
+
+    MUTED -->|"Read"| BOT_STATE
+
+    MUTE -->|"Set Muted"| BOT_STATE
+    UNMUTE -->|"Set Active"| BOT_STATE
+
+    CLEAR -->|"Clear History"| SENT_STATE
+
+    SENT_STATE -->|"Check Existing IDs"| NEW_JOB
+
+    NEW_JOB -->|"Record New Listing"| SENT_STATE
+
+    KILL --> SHUTDOWN["Stop Bot Process"]
+
+    %% =====================================================
+    %% NEW: EXISTING COMMAND DATA ACCESS
+    %% =====================================================
+
+    CS --> CURRENT
+    ME --> CURRENT
+    EE --> CURRENT
+    BM --> CURRENT
+    FUTURE --> CURRENT
+
+    RANDOM --> SENT_STATE
+    SENDALL --> SENT_STATE
+    SENDCS --> SENT_STATE
+
+    %% =====================================================
+    %% NEW: FRONTEND DISCORD OUTPUT
+    %% =====================================================
+
+    subgraph FRONTEND_OUTPUT["FRONTEND - DISCORD OUTPUT SERVICES"]
+
+        NOTIFICATION_BUILDER["sendInternshipNotification.js<br/>Build Internship Embed"]
+
+        SEND_MESSAGE["shared/discord/sendMessage.js"]
+
+        COMMAND_RESPONSE["Command Response Handler"]
+
+    end
+
+    DIGEST --> NOTIFICATION_BUILDER
+
+    MESSAGE_HANDLER --> NOTIFICATION_BUILDER
+    NOTIFICATION_BUILDER --> SEND_MESSAGE
+    SEND_MESSAGE --> DISCORD
+
+    COMMAND_EXEC --> COMMAND_RESPONSE
+    COMMAND_RESPONSE --> SEND_MESSAGE
+
+    %% =====================================================
+    %% NEW: FRONTEND ERROR HANDLING
+    %% =====================================================
+
+    subgraph FRONTEND_ERRORS["FRONTEND - ERROR HANDLING"]
+
+        ERROR_HANDLER["Error Handler"]
+
+        LOGGER["Console / PM2 Logs"]
+
+        RETRY["Retry / Failure Handling"]
+
+        ERROR_HANDLER --> LOGGER
+        ERROR_HANDLER --> RETRY
+
+    end
+
+    READ_REPO -.->|"GitHub Error"| ERROR_HANDLER
+    PARSER -.->|"Parsing Error"| ERROR_HANDLER
+    API_CLIENT -.->|"Backend API Error"| ERROR_HANDLER
+    SEND_MESSAGE -.->|"Discord Send Error"| ERROR_HANDLER
+    VALIDATE_FILE -.->|"Invalid Resume"| ERROR_HANDLER
+
+    %% =====================================================
+    %% NEW: LEGACY / INACTIVE PATH
+    %% =====================================================
+
+    subgraph LEGACY["LEGACY - INACTIVE-LOOKING COMPONENTS"]
+
+        POLLER_LEGACY["internshipPoller.js"]
+
+        GREENHOUSE["sources/greenhouse.js"]
+
+        SEEN_STORE["seenJobsStore.js"]
+
+        POLLER_LEGACY -.-> GREENHOUSE
+        POLLER_LEGACY -.-> SEEN_STORE
+
+    end
+
+    %% =====================================================
+    %% EXISTING STYLING - PRESERVED
+    %% =====================================================
+
+    classDef frontend fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef backend fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef database fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef queue fill:#f3e8ff,stroke:#9333ea,color:#581c87
+
+    class BOT,API_CLIENT,POLLER,MESSAGE_HANDLER,DISCORD frontend
+    class API,POOL,ELIGIBILITY,SKILLS,SEMANTIC,WEIGHTS backend
+    class USERS,RESUMES,RVECTORS,JOBS,JVECTORS,HISTORY,NOTIFICATIONS database
+    class RQ,JQ,MQ,WQ,PENDING queue
+
+    %% NEW COMPONENT STYLING
+    class PACKAGE,ENTRY,ENV,CONFIG,CREATE_CLIENT,LOGIN,READY,MESSAGE_CREATE frontend
+    class CRON,STARTUP,RUN_DIGEST,DIGEST,CURRENT,READ_REPO,PARSER,FILTER frontend
+    class RESUME_HANDLER,VALIDATE_FILE,EXTRACT_ID,PACKAGE_RESUME frontend
+    class NOTIFICATION_BUILDER,SEND_MESSAGE,COMMAND_RESPONSE frontend
+    class BOT_STATE,SENT_STATE database
