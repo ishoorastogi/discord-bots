@@ -12,6 +12,9 @@ class BackendClient {
         this.reconnectDelay = 5000;
         this.reconnectTimer = null;
         this.stopped = false;
+
+        this.pendingRequests = new Map();
+        this.requestTimeout = 15000;
     }
 
     connect() {
@@ -31,12 +34,11 @@ class BackendClient {
             this.connected = true;
             console.log("[TCP] Connected to backend");
 
-            // Temporary connection test
+            // Health connection test
             this.send({
                 event: "PING",
                 timestamp: new Date().toISOString()
             });
-            // delete till here
         });
 
         socket.on("data", (data) => {
@@ -69,12 +71,19 @@ class BackendClient {
             this.connected = false;
             this.socket = null;
             this.buffer = "";
-
             console.log("[TCP] Disconnected from backend");
 
             if (!this.stopped) {
                 this.scheduleReconnect();
             }
+
+            for (const [requestId, pending] of this.pendingRequests) {
+                clearTimeout(pending.timeout);
+                pending.reject(
+                    new Error("Backend disconnected before confirmation")
+                );
+            }
+            this.pendingRequests.clear();
         });
     }
 
@@ -106,10 +115,84 @@ class BackendClient {
         }
     }
 
+    sendWithConfirmation(message) {
+        return new Promise((resolve, reject) => {
+            if (!this.connected || !this.socket) {
+                reject(new Error("Backend is disconnected"));
+                return;
+            }
+
+            const requestId = message.request_id;
+            if (!requestId) {
+                reject(new Error("Missing request_id"));
+                return;
+            }
+
+            if (this.pendingRequests.has(requestId)) {
+                reject(new Error("Duplicate request_id"));
+                return;
+            }
+
+            const timeout = setTimeout(() => {
+                this.pendingRequests.delete(requestId);
+                reject(
+                    new Error("Backend confirmation timed out")
+                );
+            }, this.requestTimeout);
+
+            this.pendingRequests.set(requestId, {
+                resolve,
+                reject,
+                timeout
+            });
+
+            const sent = this.send(message);
+            if (!sent) {
+                clearTimeout(timeout);
+                this.pendingRequests.delete(requestId);
+                reject(new Error("Failed to send message"));
+            }
+        });
+    }
+
     handleMessage(message) {
         switch (message.event) {
+            case "UPLOAD_ACCEPTED":
+            case "UPLOAD_REJECTED": {
+
+                const requestId = message.request_id;
+                const pending = this.pendingRequests.get(requestId);
+
+                if (!pending) {
+                    console.warn(
+                        `[TCP] No pending request for ${requestId}`
+                    );
+                    return;
+                }
+
+                clearTimeout(pending.timeout);
+                this.pendingRequests.delete(requestId);
+
+                if (message.event === "UPLOAD_ACCEPTED") {
+                    console.log(
+                        `[TCP] Upload confirmed: ${requestId}`
+                    );
+                    pending.resolve(message);
+                } else {
+                    console.error(
+                        `[TCP] Upload rejected: ${requestId}`
+                    );
+                    pending.reject(
+                        new Error(
+                            message.message || "Upload rejected"
+                        )
+                    );
+                }
+                break;
+            }
+
             case "PONG":
-                console.log("[TCP] Backend responded to PING:", message);
+                console.log("[TCP] Backend responded to PING");
                 break;
 
             default:

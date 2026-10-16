@@ -92,7 +92,8 @@ client.on("error", (error) => {
 client.on(Events.MessageCreate, async (message) => {
   await handleMentionCommand(
     message,
-    client
+    client,
+    backend
   );
 });
 
