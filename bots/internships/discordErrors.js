@@ -14,7 +14,7 @@ function explainDiscordError(error) {
   }
 
   if (error.code === 10003) {
-    return "Discord error 10003 Unknown Channel: verify discord.internshipChannelId in config.json points to an existing channel the bot can access.";
+    return "Discord error 10003 Unknown Channel: verify INTERNSHIP_CHANNEL_ID in .env points to an existing channel the bot can access.";
   }
 
   if (error.code === 50013) {

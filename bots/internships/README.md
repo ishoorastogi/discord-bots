@@ -45,8 +45,8 @@ cp bots/internships/example-config.json bots/internships/config.json
 ```
 
 Skip either copy if you already have that file. Fill in credentials and private
-IDs in `bots/internships/.env`. Set the Discord channel and review the repository,
-schedule, and backend settings in `bots/internships/config.json`. The local
+IDs, including `INTERNSHIP_CHANNEL_ID`, in `bots/internships/.env`. Review the
+repository, schedule, and backend settings in `bots/internships/config.json`. The local
 configuration file is ignored by Git; `example-config.json` is the template.
 
 ## Required Discord Setup
@@ -62,14 +62,15 @@ In the Discord Developer Portal:
    - Send Messages
    - Embed Links
 
-Set `discord.internshipChannelId` in `config.json` to the Discord text channel
-where automatic digests should be posted. Keep Discord IDs as JSON strings.
+Set `INTERNSHIP_CHANNEL_ID` in `.env` to the Discord text channel ID
+where automatic digests should be posted.
 
 ## Environment Variables
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
 | `DISCORD_TOKEN` | Yes | None | Discord bot token. |
+| `INTERNSHIP_CHANNEL_ID` | Yes | None | Channel ID for scheduled internship digests. |
 | `BOT_OWNER_ID` | Recommended | None | Discord user ID allowed to run owner-only commands. |
 | `GITHUB_TOKEN` | No | None | Optional token for authenticated GitHub API requests. |
 | `DISCORD_GUILD_ID` | No | None | Present in `bots/internships/.env.example`, but not used by the current entry point. |
@@ -82,7 +83,6 @@ after changing either configuration file.
 
 | Setting | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `discord.internshipChannelId` | Yes | None | Channel ID for scheduled internship digests, as a string. |
 | `discord.sendStartupTestMessage` | No | `false` | Loaded by config, but not used by the current entry point. |
 | `github.repoOwner` | Yes | None | GitHub owner for the internship listings repo. |
 | `github.repoName` | Yes | None | GitHub repo name for the internship listings repo. |
@@ -215,7 +215,7 @@ assertion suite, and is not included in `npm test`.
   your settings. Invalid JSON settings are reported with the affected key.
 - Invalid Discord token: verify `DISCORD_TOKEN` is the bot token, not the client
   secret or application ID.
-- Unknown Channel or Missing Access: verify `discord.internshipChannelId` in `config.json`, confirm the
+- Unknown Channel or Missing Access: verify `INTERNSHIP_CHANNEL_ID` in `.env`, confirm the
   bot is in the server, and grant channel access.
 - Missing Permissions: grant View Channel, Send Messages, and Embed Links.
 - Mention commands do not respond: enable Message Content Intent in the Discord

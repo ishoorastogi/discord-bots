@@ -108,8 +108,7 @@ function loadConfig() {
     githubToken: getOptionalEnv("GITHUB_TOKEN"),
 
     // Discord configuration
-    internshipChannelId:
-      getSetting("discord.internshipChannelId"),
+    internshipChannelId: getEnv("INTERNSHIP_CHANNEL_ID"),
 
     sendStartupTestMessage: parseBoolean(
       settings.discord?.sendStartupTestMessage,

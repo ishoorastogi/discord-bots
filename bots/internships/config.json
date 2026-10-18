@@ -1,13 +1,12 @@
 {
   "discord": {
-    "internshipChannelId": "1551659923719594106",
     "sendStartupTestMessage": false
   },
 
   "internships": {
     "schedule": "0 8 * * *",
     "timezone": "America/Chicago",
-    "runOnStartup": true
+    "runOnStartup": false
   },
 
   "github": {

@@ -53,7 +53,7 @@ test("configuration reports missing files and malformed JSON with actionable con
 for (const [key, value] of [
     ["internships.schedule", "invalid"], ["internships.timezone", "Invalid/Zone"],
     ["github.repoOwner", ""], ["github.repoPath", null],
-    ["discord.internshipChannelId", 123], ["backend.host", ""],
+    ["backend.host", ""],
     ["backend.port", 0], ["backend.port", 65536], ["backend.port", "8000"],
 ]) {
     test(`configuration rejects invalid ${key}`, () => {

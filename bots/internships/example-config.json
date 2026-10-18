@@ -1,6 +1,5 @@
 {
   "discord": {
-    "internshipChannelId": "YOUR_CHANNEL_ID",
     "sendStartupTestMessage": false
   },
 

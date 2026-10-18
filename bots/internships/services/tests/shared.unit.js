@@ -123,7 +123,7 @@ test("notification embeds include all listings, dates, locations and application
 test("Discord error explanations cover known codes and unknown failures", () => {
     const { explainDiscordError } = load(bot + "discordErrors.js");
     for (const [error, pattern] of [
-        [null, /Unknown/], [{ code: 50001 }, /Missing Access/], [{ code: 10003 }, /config.json/],
+        [null, /Unknown/], [{ code: 50001 }, /Missing Access/], [{ code: 10003 }, /INTERNSHIP_CHANNEL_ID/],
         [{ code: 50013 }, /Missing Permissions/], [{ code: "TokenInvalid" }, /Invalid Discord token/],
         [{ message: "An invalid token was provided." }, /Invalid Discord token/],
         [new Error("other"), /other/], [{}, /No error message/],

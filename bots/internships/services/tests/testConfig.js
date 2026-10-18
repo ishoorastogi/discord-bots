@@ -8,7 +8,7 @@ const { test } = require("node:test");
 const root = path.resolve(__dirname, "../../../..");
 const example = require("../../example-config.json");
 
-function runConfig(t, { settings = example, env = {}, code } = {}) {
+function runConfig(t, { settings = example, env = {}, channelId = "fixture-channel", code } = {}) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "internship-config-"));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
 
@@ -27,7 +27,9 @@ function runConfig(t, { settings = example, env = {}, code } = {}) {
     if (settings !== null) {
         fs.writeFileSync(path.join(botDirectory, "config.json"), JSON.stringify(settings));
     }
-    fs.writeFileSync(path.join(botDirectory, ".env"), "DISCORD_TOKEN=fixture-token\nBOT_OWNER_ID=fixture-owner\n");
+    fs.writeFileSync(path.join(botDirectory, ".env"),
+        "DISCORD_TOKEN=fixture-token\nBOT_OWNER_ID=fixture-owner\n" +
+        (channelId === null ? "" : `INTERNSHIP_CHANNEL_ID=${channelId}\n`));
 
     // Start outside the bot directory and exclude the real environment/credentials.
     return spawnSync(process.execPath, ["-e", code || `
@@ -46,10 +48,9 @@ function readConfig(result) {
     return JSON.parse(result.stdout.trim().split("\n").at(-1));
 }
 
-test("JSON settings and .env credentials load from any working directory", (t) => {
+test("JSON settings and .env credentials and channel load from any working directory", (t) => {
     const config = readConfig(runConfig(t, {
         env: {
-            INTERNSHIP_CHANNEL_ID: "stale-channel",
             INTERNSHIP_REPO_OWNER: "stale-owner",
             INTERNSHIP_CRON_SCHEDULE: "invalid",
             INTERNSHIP_TIMEZONE: "invalid",
@@ -61,7 +62,7 @@ test("JSON settings and .env credentials load from any working directory", (t) =
 
     assert.equal(config.discordToken, "fixture-token");
     assert.equal(config.botOwnerId, "fixture-owner");
-    assert.equal(config.internshipChannelId, example.discord.internshipChannelId);
+    assert.equal(config.internshipChannelId, "fixture-channel");
     assert.deepEqual(config.repository, {
         owner: example.github.repoOwner,
         repo: example.github.repoName,
@@ -77,13 +78,27 @@ test("JSON settings and .env credentials load from any working directory", (t) =
     assert.equal(config.githubToken, undefined);
 });
 
-test("exported credentials override .env and optional tokens remain supported", (t) => {
+test("exported credentials and channel override .env and optional tokens remain supported", (t) => {
     const config = readConfig(runConfig(t, {
-        env: { DISCORD_TOKEN: "exported-token", GITHUB_TOKEN: "github-fixture" },
+        env: {
+            DISCORD_TOKEN: "exported-token", GITHUB_TOKEN: "github-fixture",
+            INTERNSHIP_CHANNEL_ID: "exported-channel",
+        },
     }));
     assert.equal(config.discordToken, "exported-token");
     assert.equal(config.githubToken, "github-fixture");
+    assert.equal(config.internshipChannelId, "exported-channel");
 });
+
+for (const channelId of [null, ""]) {
+    test(`rejects missing or empty INTERNSHIP_CHANNEL_ID: ${JSON.stringify(channelId)}`, (t) => {
+        const settings = structuredClone(example);
+        settings.discord.internshipChannelId = "legacy-channel";
+        const result = runConfig(t, { settings, channelId });
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /Missing required environment variable: INTERNSHIP_CHANNEL_ID/);
+    });
+}
 
 test("optional scheduling values retain defaults", (t) => {
     const settings = structuredClone(example);
@@ -109,7 +124,6 @@ for (const [key, value] of [
     ["github.repoName", null],
     ["github.repoBranch", ""],
     ["github.repoPath", ""],
-    ["discord.internshipChannelId", 123456789012345678],
     ["backend.host", ""],
     ["backend.port", "8000"],
     ["backend.port", 0],
@@ -160,7 +174,7 @@ test("repository-only loading works without a Discord token", (t) => {
     assert.equal(result.status, 0, result.stderr);
 });
 
-test("entry point uses JSON for backend, scheduling, and digest channel", (t) => {
+test("entry point uses JSON for backend and scheduling and .env for the digest channel", (t) => {
     const result = runConfig(t, { code: `
         const assert = require("node:assert/strict");
         const root = ${JSON.stringify(root)};
