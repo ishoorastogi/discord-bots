@@ -154,7 +154,42 @@ bot to treat all current listings as unseen again.
 
 ## Tests
 
-Available test scripts:
+Run the full offline unit suite from the workspace root:
+
+```sh
+npm run test
+```
+
+`npm test` and `npm run test:unit` are equivalent. Every suite runs even if another
+fails, and the command returns a nonzero exit code if any suite fails.
+
+The unit suites live in `services/tests/`. They exercise every application
+function, including all 17 commands, configuration, parsing, ranking, history,
+bot state, Greenhouse polling, Discord helpers, GitHub fetching, TCP connection
+lifecycle, resume uploads, and entry-point event handlers. Dependencies are
+stubbed at their boundaries; filesystem tests use memory or temporary directories.
+The unit suite does not need credentials or network access and does not modify
+the bot's saved data or connect to Discord/the backend.
+
+To report application coverage and enforce 100% function coverage (verified with
+Node.js 22.16.0):
+
+```sh
+npm run test:coverage
+```
+
+Live integration tests remain available separately. To run them, or run every
+unit and integration suite together:
+
+```sh
+npm run test:integration
+npm run test:all
+```
+
+`test:all` finishes with the total test count and passed/failed counts. If any
+tests fail, it lists their names, file locations, and error details at the end.
+
+Individual test scripts:
 
 ```sh
 npm run test:internship-repo
@@ -164,9 +199,13 @@ npm run test:internship-filter
 npm run test:internship-config
 ```
 
-The config tests run locally with isolated fixtures. The repo, content, parser,
-and filter tests call GitHub, so they need network access and can benefit from
+The individual config tests run locally with isolated fixtures. The individual
+repo, content, parser, and filter scripts include live GitHub smoke tests, so they
+need network access and a configured `config.json`, and can benefit from
 `GITHUB_TOKEN`.
+
+`api/tests/resumeTestEvent.py` is a manual backend event sender, not an automated
+assertion suite, and is not included in `npm test`.
 
 ## Troubleshooting
 
