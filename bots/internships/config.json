@@ -1,0 +1,24 @@
+{
+  "discord": {
+    "internshipChannelId": "1551659923719594106",
+    "sendStartupTestMessage": false
+  },
+
+  "internships": {
+    "schedule": "0 8 * * *",
+    "timezone": "America/Chicago",
+    "runOnStartup": true
+  },
+
+  "github": {
+    "repoOwner": "SimplifyJobs",
+    "repoName": "Summer2027-Internships",
+    "repoBranch": "dev",
+    "repoPath": ".github/scripts/listings.json"
+  },
+
+  "backend": {
+    "host": "127.0.0.1",
+    "port": 8000
+  }
+}
