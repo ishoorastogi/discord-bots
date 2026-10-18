@@ -1,7 +1,6 @@
 const cron = require("node-cron");
 const { Events } = require("discord.js");
 const BackendClient = require("./api/backendClient");
-const BackendClient = require("./api/backendClient");
 
 const {
   isMuted,
@@ -30,6 +29,11 @@ const {
 
 const config = loadConfig();
 const client = createClient();
+
+const backend = new BackendClient(
+  config.backend.host,
+  config.backend.port
+);
 
 async function runDigest() {
   try {
@@ -89,7 +93,7 @@ client.on(Events.MessageCreate, async (message) => {
   await handleMentionCommand(
     message,
     client,
-    backend
+    backend,
   );
 });
 
