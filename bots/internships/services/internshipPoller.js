@@ -1,6 +1,6 @@
 const { fetchGreenhouseJobs } = require("../sources/greenhouse");
-const { filterInternships } = require("./internshipFilter");
-const sendInternshipNotification = require("../sendInternshipNotification");
+const { getTopInternships } = require("./internshipFilter");
+const { sendInternshipNotification } = require("../sendInternshipNotification");
 const { logInfo, logWarn, logError } = require("../../../shared/utils/logger");
 
 class InternshipPoller {
@@ -37,7 +37,16 @@ class InternshipPoller {
 
                     fetched += jobs.length;
 
-                    const filtered = filterInternships(jobs);
+                    const filtered = getTopInternships(
+                        jobs.map((job) => ({
+                            ...job,
+                            applicationUrl: job.url,
+                            datePosted: job.postedAt
+                                ? job.postedAt.getTime() / 1000
+                                : undefined,
+                        })),
+                        Math.max(jobs.length, 1)
+                    );
 
                     internships += filtered.length;
 
@@ -49,7 +58,8 @@ class InternshipPoller {
 
                         await sendInternshipNotification(
                             this.client,
-                            job
+                            this.config.internshipChannelId,
+                            [job]
                         );
 
                         await this.seenJobsStore.markSeen(job.id);

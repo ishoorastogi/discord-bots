@@ -1,6 +1,7 @@
 const cron = require("node-cron");
 const { Events } = require("discord.js");
 const BackendClient = require("./api/backendClient");
+const BackendClient = require("./api/backendClient");
 
 const {
   isMuted,
@@ -29,11 +30,6 @@ const {
 
 const config = loadConfig();
 const client = createClient();
-
-const backend = new BackendClient(
-    process.env.BACKEND_HOST,
-    Number(process.env.BACKEND_PORT)
-);
 
 async function runDigest() {
   try {
@@ -79,7 +75,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   );
 
   if (config.runOnStartup) {
-    logInfo("RUN_ON_STARTUP enabled. Running internship digest.");
+    logInfo("internships.runOnStartup enabled. Running internship digest.");
 
     await runDigest();
   }
