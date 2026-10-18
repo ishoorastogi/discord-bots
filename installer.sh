@@ -62,26 +62,75 @@ fi
 
 log "Preparing environment file"
 
+INTERNSHIP_ENV_CREATED=false
 if [[ -f "$INTERNSHIP_ENV_FILE" ]]; then
-  printf 'bots/internships/.env already exists; leaving it unchanged.\n'
+  printf 'bots/internships/.env already exists; preserving existing values.\n'
 elif [[ -f "$INTERNSHIP_ENV_EXAMPLE" ]]; then
   cp "$INTERNSHIP_ENV_EXAMPLE" "$INTERNSHIP_ENV_FILE"
   chmod 600 "$INTERNSHIP_ENV_FILE"
-  printf 'Created bots/internships/.env from bots/internships/.env.example. Fill in Discord and GitHub values before starting the bot.\n'
+  INTERNSHIP_ENV_CREATED=true
+  printf 'Created bots/internships/.env from bots/internships/.env.example. Fill in Discord and GitHub values and review RUN_ON_STARTUP before starting the bot.\n'
 else
-  printf 'No bots/internships/.env.example found; skipping .env creation.\n'
+  fail "No bots/internships/.env or .env.example found."
 fi
 
 log "Preparing configuration file"
 
 if [[ -f "$INTERNSHIP_CONFIG_FILE" ]]; then
-  printf 'bots/internships/config.json already exists; leaving it unchanged.\n'
+  printf 'bots/internships/config.json already exists; checking for legacy settings.\n'
 elif [[ -f "$INTERNSHIP_CONFIG_EXAMPLE" ]]; then
   cp "$INTERNSHIP_CONFIG_EXAMPLE" "$INTERNSHIP_CONFIG_FILE"
-  printf 'Created bots/internships/config.json from example-config.json. Set the Discord channel and review repository, schedule, and backend settings before starting the bot.\n'
+  printf 'Created bots/internships/config.json from example-config.json. Review repository, schedule, and backend settings before starting the bot.\n'
 else
   fail "No bots/internships/config.json or example-config.json found."
 fi
+
+log "Checking environment settings"
+
+node - "$INTERNSHIP_ENV_CREATED" <<'NODE'
+const fs = require("node:fs");
+const dotenv = require("dotenv");
+const envPath = "bots/internships/.env";
+const configPath = "bots/internships/config.json";
+const envCreated = process.argv[2] === "true";
+const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+let envText = fs.readFileSync(envPath, "utf8");
+const env = dotenv.parse(envText);
+let configChanged = false;
+
+for (const [name, section, key, fallback] of [
+  ["INTERNSHIP_CHANNEL_ID", "discord", "internshipChannelId", "YOUR_CHANNEL_ID"],
+  ["RUN_ON_STARTUP", "internships", "runOnStartup", true],
+]) {
+  const hasLegacySetting = Object.hasOwn(config[section] || {}, key);
+  if (!Object.hasOwn(env, name) || (envCreated && hasLegacySetting)) {
+    const value = String(hasLegacySetting ? config[section][key] : fallback).trim();
+    // Quote values so dotenv preserves them without interpreting comments or newlines.
+    const line = `${name}=${JSON.stringify(value)}`;
+    if (Object.hasOwn(env, name)) {
+      envText = envText.replace(new RegExp(`^${name}=.*$`, "m"), () => line);
+    } else {
+      envText += (envText.endsWith("\n") ? "" : "\n") + line + "\n";
+    }
+    env[name] = value;
+    console.log(`${hasLegacySetting ? "Migrated" : "Added"} ${name} in bots/internships/.env.`);
+  }
+  if (hasLegacySetting) {
+    delete config[section][key];
+    configChanged = true;
+  }
+}
+
+// Save environment settings before removing the legacy JSON values.
+fs.writeFileSync(envPath, envText);
+if (configChanged) {
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
+}
+if (!env.INTERNSHIP_CHANNEL_ID || env.INTERNSHIP_CHANNEL_ID === "YOUR_CHANNEL_ID") {
+  console.log("Set INTERNSHIP_CHANNEL_ID in bots/internships/.env before starting the bot.");
+}
+console.log("Review RUN_ON_STARTUP in bots/internships/.env (true runs a digest on startup; false disables it).");
+NODE
 
 log "Installation complete"
 printf 'Start the internship bot with: npm run start:internships\n'
