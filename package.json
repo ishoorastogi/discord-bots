@@ -6,6 +6,7 @@
   "scripts": {
     "start:internships": "node bots/internships/index.js",
     "dev:internships": "node --watch bots/internships/index.js",
+    "test:internship-config": "node --test bots/internships/services/tests/testConfig.js",
     "test:internship-content": "node bots/internships/repos/tests/testRepoContent.js",
     "test:internship-repo": "node bots/internships/repos/tests/testRepoConnection.js",
     "test:internship-parser": "node bots/internships/services/tests/testInternshipParser.js",

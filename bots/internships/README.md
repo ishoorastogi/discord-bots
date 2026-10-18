@@ -37,13 +37,17 @@ Install dependencies from the workspace root:
 npm install
 ```
 
-Create a bot-specific `.env` file from the example:
+Create the bot's environment and configuration files from the examples:
 
 ```sh
 cp bots/internships/.env.example bots/internships/.env
+cp bots/internships/example-config.json bots/internships/config.json
 ```
 
-Fill in the Discord and GitHub values in `bots/internships/.env`.
+Skip either copy if you already have that file. Fill in credentials and private
+IDs in `bots/internships/.env`. Set the Discord channel and review the repository,
+schedule, and backend settings in `bots/internships/config.json`. The local
+configuration file is ignored by Git; `example-config.json` is the template.
 
 ## Required Discord Setup
 
@@ -58,26 +62,37 @@ In the Discord Developer Portal:
    - Send Messages
    - Embed Links
 
-Set `INTERNSHIP_CHANNEL_ID` to the Discord text channel where automatic digests
-should be posted.
+Set `discord.internshipChannelId` in `config.json` to the Discord text channel
+where automatic digests should be posted. Keep Discord IDs as JSON strings.
 
 ## Environment Variables
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
 | `DISCORD_TOKEN` | Yes | None | Discord bot token. |
-| `INTERNSHIP_CHANNEL_ID` | Yes | None | Channel ID for scheduled internship digests. |
 | `BOT_OWNER_ID` | Recommended | None | Discord user ID allowed to run owner-only commands. |
-| `INTERNSHIP_REPO_OWNER` | Yes | None | GitHub owner for the internship listings repo. |
-| `INTERNSHIP_REPO_NAME` | Yes | None | GitHub repo name for the internship listings repo. |
-| `INTERNSHIP_REPO_BRANCH` | Yes | None | Git branch or ref to read from. |
-| `INTERNSHIP_REPO_PATH` | Yes | None | Path to the listings JSON file in the repo. |
 | `GITHUB_TOKEN` | No | None | Optional token for authenticated GitHub API requests. |
-| `INTERNSHIP_CRON_SCHEDULE` | No | `0 8 * * *` | Cron schedule for automatic digests. |
-| `INTERNSHIP_TIMEZONE` | No | `America/Chicago` | Timezone used by the cron schedule. |
-| `RUN_ON_STARTUP` | No | `true` | Runs a digest immediately after the bot logs in. |
-| `SEND_STARTUP_TEST_MESSAGE` | No | `false` | Loaded by config, but not used by the current entry point. |
 | `DISCORD_GUILD_ID` | No | None | Present in `bots/internships/.env.example`, but not used by the current entry point. |
+
+## JSON Configuration
+
+These settings are read from `bots/internships/config.json`. Old environment
+variables for these settings no longer override the JSON file. Restart the bot
+after changing either configuration file.
+
+| Setting | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `discord.internshipChannelId` | Yes | None | Channel ID for scheduled internship digests, as a string. |
+| `discord.sendStartupTestMessage` | No | `false` | Loaded by config, but not used by the current entry point. |
+| `github.repoOwner` | Yes | None | GitHub owner for the internship listings repo. |
+| `github.repoName` | Yes | None | GitHub repo name for the internship listings repo. |
+| `github.repoBranch` | Yes | None | Git branch or ref to read from. |
+| `github.repoPath` | Yes | None | Path to the listings JSON file in the repo. |
+| `internships.schedule` | No | `0 8 * * *` | Cron schedule for automatic digests. |
+| `internships.timezone` | No | `America/Chicago` | Timezone used by the cron schedule. |
+| `internships.runOnStartup` | No | `true` | Runs a digest immediately after the bot logs in. |
+| `backend.host` | Yes | None | TCP backend hostname or IP address. |
+| `backend.port` | Yes | None | TCP backend port, as a JSON integer from 1 to 65535. |
 
 ## Running The Bot
 
@@ -94,7 +109,7 @@ npm run dev:internships
 ```
 
 When the bot logs in, it schedules the digest using
-`INTERNSHIP_CRON_SCHEDULE` and `INTERNSHIP_TIMEZONE`. If `RUN_ON_STARTUP=true`,
+`internships.schedule` and `internships.timezone`. If `internships.runOnStartup` is `true`,
 it immediately runs one digest after connecting.
 
 ## Discord Commands
@@ -146,18 +161,22 @@ npm run test:internship-repo
 npm run test:internship-content
 npm run test:internship-parser
 npm run test:internship-filter
+npm run test:internship-config
 ```
 
-The repo and content tests call GitHub, so they may need network access and can
-benefit from `GITHUB_TOKEN`.
+The config tests run locally with isolated fixtures. The repo, content, parser,
+and filter tests call GitHub, so they need network access and can benefit from
+`GITHUB_TOKEN`.
 
 ## Troubleshooting
 
 - `Missing required environment variable`: check that `bots/internships/.env`
   exists and includes all required values.
+- Missing `config.json`: copy `example-config.json` to `config.json` and fill in
+  your settings. Invalid JSON settings are reported with the affected key.
 - Invalid Discord token: verify `DISCORD_TOKEN` is the bot token, not the client
   secret or application ID.
-- Unknown Channel or Missing Access: verify `INTERNSHIP_CHANNEL_ID`, confirm the
+- Unknown Channel or Missing Access: verify `discord.internshipChannelId` in `config.json`, confirm the
   bot is in the server, and grant channel access.
 - Missing Permissions: grant View Channel, Send Messages, and Embed Links.
 - Mention commands do not respond: enable Message Content Intent in the Discord

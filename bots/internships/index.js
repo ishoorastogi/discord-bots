@@ -31,8 +31,8 @@ const config = loadConfig();
 const client = createClient();
 
 const backend = new BackendClient(
-    process.env.BACKEND_HOST,
-    Number(process.env.BACKEND_PORT)
+    config.backend.host,
+    config.backend.port
 );
 
 async function runDigest() {
@@ -79,7 +79,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   );
 
   if (config.runOnStartup) {
-    logInfo("RUN_ON_STARTUP enabled. Running internship digest.");
+    logInfo("internships.runOnStartup enabled. Running internship digest.");
 
     await runDigest();
   }

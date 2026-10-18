@@ -22,6 +22,8 @@ cd "$SCRIPT_DIR"
 INTERNSHIP_ENV_DIR="$SCRIPT_DIR/bots/internships"
 INTERNSHIP_ENV_FILE="$INTERNSHIP_ENV_DIR/.env"
 INTERNSHIP_ENV_EXAMPLE="$INTERNSHIP_ENV_DIR/.env.example"
+INTERNSHIP_CONFIG_FILE="$INTERNSHIP_ENV_DIR/config.json"
+INTERNSHIP_CONFIG_EXAMPLE="$INTERNSHIP_ENV_DIR/example-config.json"
 
 log "Checking required tools"
 
@@ -68,6 +70,17 @@ elif [[ -f "$INTERNSHIP_ENV_EXAMPLE" ]]; then
   printf 'Created bots/internships/.env from bots/internships/.env.example. Fill in Discord and GitHub values before starting the bot.\n'
 else
   printf 'No bots/internships/.env.example found; skipping .env creation.\n'
+fi
+
+log "Preparing configuration file"
+
+if [[ -f "$INTERNSHIP_CONFIG_FILE" ]]; then
+  printf 'bots/internships/config.json already exists; leaving it unchanged.\n'
+elif [[ -f "$INTERNSHIP_CONFIG_EXAMPLE" ]]; then
+  cp "$INTERNSHIP_CONFIG_EXAMPLE" "$INTERNSHIP_CONFIG_FILE"
+  printf 'Created bots/internships/config.json from example-config.json. Set the Discord channel and review repository, schedule, and backend settings before starting the bot.\n'
+else
+  fail "No bots/internships/config.json or example-config.json found."
 fi
 
 log "Installation complete"
