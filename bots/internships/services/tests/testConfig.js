@@ -8,7 +8,7 @@ const { test } = require("node:test");
 const root = path.resolve(__dirname, "../../../..");
 const example = require("../../example-config.json");
 
-function runConfig(t, { settings = example, env = {}, channelId = "fixture-channel", code } = {}) {
+function runConfig(t, { settings = example, env = {}, channelId = "fixture-channel", runOnStartup = null, code } = {}) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "internship-config-"));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
 
@@ -29,7 +29,8 @@ function runConfig(t, { settings = example, env = {}, channelId = "fixture-chann
     }
     fs.writeFileSync(path.join(botDirectory, ".env"),
         "DISCORD_TOKEN=fixture-token\nBOT_OWNER_ID=fixture-owner\n" +
-        (channelId === null ? "" : `INTERNSHIP_CHANNEL_ID=${channelId}\n`));
+        (channelId === null ? "" : `INTERNSHIP_CHANNEL_ID=${channelId}\n`) +
+        (runOnStartup === null ? "" : `RUN_ON_STARTUP=${runOnStartup}\n`));
 
     // Start outside the bot directory and exclude the real environment/credentials.
     return spawnSync(process.execPath, ["-e", code || `
@@ -54,7 +55,6 @@ test("JSON settings and .env credentials and channel load from any working direc
             INTERNSHIP_REPO_OWNER: "stale-owner",
             INTERNSHIP_CRON_SCHEDULE: "invalid",
             INTERNSHIP_TIMEZONE: "invalid",
-            RUN_ON_STARTUP: "false",
             BACKEND_HOST: "stale-host",
             BACKEND_PORT: "9999",
         },
@@ -111,10 +111,16 @@ test("optional scheduling values retain defaults", (t) => {
     assert.equal(config.sendStartupTestMessage, false);
 });
 
-test("JSON boolean false disables the startup digest", (t) => {
+test("RUN_ON_STARTUP in .env disables the startup digest", (t) => {
     const settings = structuredClone(example);
-    settings.internships.runOnStartup = false;
-    assert.equal(readConfig(runConfig(t, { settings })).runOnStartup, false);
+    settings.internships.runOnStartup = true;
+    assert.equal(readConfig(runConfig(t, { settings, runOnStartup: "false" })).runOnStartup, false);
+});
+
+test("exported RUN_ON_STARTUP overrides .env", (t) => {
+    assert.equal(readConfig(runConfig(t, {
+        runOnStartup: "false", env: { RUN_ON_STARTUP: "true" },
+    })).runOnStartup, true);
 });
 
 for (const [key, value] of [

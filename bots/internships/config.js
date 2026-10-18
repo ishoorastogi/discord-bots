@@ -124,7 +124,7 @@ function loadConfig() {
     timezone,
 
     runOnStartup: parseBoolean(
-      settings.internships?.runOnStartup,
+      getOptionalEnv("RUN_ON_STARTUP"),
       true
     ),
 

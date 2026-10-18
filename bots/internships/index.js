@@ -79,7 +79,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   );
 
   if (config.runOnStartup) {
-    logInfo("internships.runOnStartup enabled. Running internship digest.");
+    logInfo("RUN_ON_STARTUP enabled. Running internship digest.");
 
     await runDigest();
   }

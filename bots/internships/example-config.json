@@ -5,8 +5,7 @@
 
   "internships": {
     "schedule": "0 8 * * *",
-    "timezone": "America/Chicago",
-    "runOnStartup": true
+    "timezone": "America/Chicago"
   },
 
   "github": {

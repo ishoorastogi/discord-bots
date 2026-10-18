@@ -45,7 +45,7 @@ cp bots/internships/example-config.json bots/internships/config.json
 ```
 
 Skip either copy if you already have that file. Fill in credentials and private
-IDs, including `INTERNSHIP_CHANNEL_ID`, in `bots/internships/.env`. Review the
+IDs, including `INTERNSHIP_CHANNEL_ID`, and set `RUN_ON_STARTUP` in `bots/internships/.env`. Review the
 repository, schedule, and backend settings in `bots/internships/config.json`. The local
 configuration file is ignored by Git; `example-config.json` is the template.
 
@@ -71,6 +71,7 @@ where automatic digests should be posted.
 | --- | --- | --- | --- |
 | `DISCORD_TOKEN` | Yes | None | Discord bot token. |
 | `INTERNSHIP_CHANNEL_ID` | Yes | None | Channel ID for scheduled internship digests. |
+| `RUN_ON_STARTUP` | No | `true` | Runs a digest immediately after the bot logs in. Set to `false` to disable. |
 | `BOT_OWNER_ID` | Recommended | None | Discord user ID allowed to run owner-only commands. |
 | `GITHUB_TOKEN` | No | None | Optional token for authenticated GitHub API requests. |
 | `DISCORD_GUILD_ID` | No | None | Present in `bots/internships/.env.example`, but not used by the current entry point. |
@@ -90,7 +91,6 @@ after changing either configuration file.
 | `github.repoPath` | Yes | None | Path to the listings JSON file in the repo. |
 | `internships.schedule` | No | `0 8 * * *` | Cron schedule for automatic digests. |
 | `internships.timezone` | No | `America/Chicago` | Timezone used by the cron schedule. |
-| `internships.runOnStartup` | No | `true` | Runs a digest immediately after the bot logs in. |
 | `backend.host` | Yes | None | TCP backend hostname or IP address. |
 | `backend.port` | Yes | None | TCP backend port, as a JSON integer from 1 to 65535. |
 
@@ -109,7 +109,7 @@ npm run dev:internships
 ```
 
 When the bot logs in, it schedules the digest using
-`internships.schedule` and `internships.timezone`. If `internships.runOnStartup` is `true`,
+`internships.schedule` and `internships.timezone`. If `RUN_ON_STARTUP` in `.env` is `true` (the default),
 it immediately runs one digest after connecting.
 
 ## Discord Commands
