@@ -10,4 +10,4 @@ bots/internships/data/sentInternships.json
 *.log
 
 bots/internships/data/backendState.json
-bots/internships/data/botstate.json
+bots/internships/data/botState.json
