@@ -16,6 +16,7 @@ async function execute(message) {
             "`/clear` - Clear the internship history",
             "`/mute` - Mute the bot (pause automatic internship messages)",
             "`/unmute` - Unmute the bot (resume automatic internship messages)",
+            "`/backend` - Help commands for the backend connection",
             "",
             "Example: `@Internship Job Bot /cs` will return the 5 most recent CS internships.",
         ].join("\n")

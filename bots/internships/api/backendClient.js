@@ -1,7 +1,7 @@
 const net = require("node:net");
 
 class BackendClient {
-    constructor(host, port) {
+    constructor(host, port, enabled = true) {
         this.host = host;
         this.port = port;
 
@@ -9,9 +9,10 @@ class BackendClient {
         this.connected = false;
         this.buffer = "";
 
-        this.reconnectDelay = 5000;
+        this.reconnectDelay = 10000;
         this.reconnectTimer = null;
-        this.stopped = false;
+
+        this.stopped = !enabled;
 
         this.pendingRequests = new Map();
         this.requestTimeout = 15000;
@@ -31,10 +32,15 @@ class BackendClient {
         socket.setEncoding("utf8");
 
         socket.on("connect", () => {
+            if (this.stopped || this.socket !== socket) {
+                socket.destroy();
+                return;
+            }
+
             this.connected = true;
+
             console.log("[TCP] Connected to backend");
 
-            // Health connection test
             this.send({
                 event: "PING",
                 timestamp: new Date().toISOString()
@@ -68,14 +74,15 @@ class BackendClient {
         });
 
         socket.on("close", () => {
+            if (this.socket !== socket) {
+                return;
+            }
+
             this.connected = false;
             this.socket = null;
             this.buffer = "";
-            console.log("[TCP] Disconnected from backend");
 
-            if (!this.stopped) {
-                this.scheduleReconnect();
-            }
+            console.log("[TCP] Disconnected from backend");
 
             for (const [requestId, pending] of this.pendingRequests) {
                 clearTimeout(pending.timeout);
@@ -83,7 +90,12 @@ class BackendClient {
                     new Error("Backend disconnected before confirmation")
                 );
             }
+
             this.pendingRequests.clear();
+
+            if (!this.stopped) {
+                this.scheduleReconnect();
+            }
         });
     }
 
@@ -201,6 +213,11 @@ class BackendClient {
     }
 
     disconnect() {
+        if (this.stopped) {
+            console.log("[TCP] Backend connection already disabled");
+            return;
+        }
+
         this.stopped = true;
 
         if (this.reconnectTimer) {
@@ -211,6 +228,35 @@ class BackendClient {
         if (this.socket) {
             this.socket.destroy();
         }
+
+        console.log("[TCP] Backend connection disabled");
+    }
+
+    enable() {
+        if (!this.stopped) {
+            console.log("[TCP] Backend connection already enabled");
+            return;
+        }
+
+        this.stopped = false;
+
+        console.log("[TCP] Backend connection enabled");
+
+        if (this.socket) {
+            // Wait for the previous socket to finish closing.
+            // Its close handler will schedule reconnection.
+            return;
+        }
+
+        this.connect();
+    }
+
+    getStatus() {
+        return {
+            enabled: !this.stopped,
+            connected: this.connected,
+            reconnecting: this.reconnectTimer !== null
+        };
     }
 }
 

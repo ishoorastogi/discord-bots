@@ -8,3 +8,5 @@ logs/
 
 bots/internships/data/sentInternships.json
 *.log
+
+bots/internships/data/backendState.json

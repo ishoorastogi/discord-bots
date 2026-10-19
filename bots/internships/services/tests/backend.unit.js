@@ -64,7 +64,7 @@ test("TCP reconnects after close, rejects pending requests and cancels reconnect
     await rejection;
     assert.equal(client.pendingRequests.size, 0);
     const timer = timers.at(-1);
-    assert.equal(timer.delay, 5000);
+    assert.equal(timer.delay, 10000);
     client.scheduleReconnect();
     assert.equal(timers.at(-1), timer, "only one reconnect timer is scheduled");
     timer.callback();

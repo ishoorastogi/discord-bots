@@ -88,6 +88,13 @@ test("/random shuffles a copy, limits to five, and handles empty history", async
 
 test("/status reports configuration, sent count, startup flag and muted state", async () => {
     let enabled = true;
+    const backend = {
+        getStatus: mock.fn(() => ({
+            enabled: true,
+            connected: true,
+            reconnecting: false
+        }))
+    };
     const command = load(commandsDirectory + "statusCommand.js", {
         [bot + "config.js"]: { loadConfig: () => ({ ...fixtureConfig, runOnStartup: enabled }) },
         [bot + "services/botState.js"]: { isMuted: async () => enabled },
@@ -96,7 +103,7 @@ test("/status reports configuration, sent count, startup flag and muted state", 
     const msg = message();
     for (const value of [true, false]) {
         enabled = value;
-        await command.execute(msg);
+        await command.execute(msg, {}, backend);
         const response = msg.reply.mock.calls.at(-1).arguments[0];
         assert.match(response, /Schedule: 0 8 \* \* \*/);
         assert.match(response, /Timezone: America\/Chicago/);
@@ -104,6 +111,7 @@ test("/status reports configuration, sent count, startup flag and muted state", 
         assert.ok(response.includes(`Run on startup: ${value ? "Yes" : "No"}`));
         assert.ok(response.includes(`Is Muted: ${value ? "Yes" : "No"}`));
         assert.match(response, /owner\/repo/);
+        assert.match(response, /Backend: Enabled/);
     }
 });
 
@@ -183,7 +191,7 @@ test("/resume validates name/attachment and reports backend confirmations and fa
 
 test("command registry contains every command with unique names and callable handlers", () => {
     const { commands, commandMap } = load(commandsDirectory + "index.js");
-    assert.equal(commands.length, 17);
+    assert.equal(commands.length, 18);
     assert.equal(commandMap.size, commands.length);
     for (const command of commands) {
         assert.equal(typeof command.execute, "function");
@@ -193,26 +201,114 @@ test("command registry contains every command with unique names and callable han
 
 test("mention routing ignores bots/nonmentions, normalizes commands, forwards arguments and handles errors", async () => {
     const execute = mock.fn(async () => {});
-    const { handleMentionCommand } = load(commandsDirectory + "handleMentionCommand.js", {
-        [commandsDirectory + "index.js"]: { commandMap: new Map([["/resume", { execute }]]) },
-    });
-    const client = { user: { id: "123" } };
+
+    const { handleMentionCommand } = load(
+        commandsDirectory + "handleMentionCommand.js",
+        {
+            [commandsDirectory + "index.js"]: {
+                commandMap: new Map([
+                    ["/resume", { execute }]
+                ])
+            },
+        }
+    );
+
+    const client = {
+        user: { id: "123" }
+    };
+
     const backend = {};
-    const msg = message({ content: "<@!123> /RESUME John Smith" });
+
+    const backendControls = {
+        enableBackend: mock.fn(),
+        disableBackend: mock.fn(),
+        getBackendStatus: mock.fn(() => ({
+            enabled: true,
+            connected: true,
+            reconnecting: false
+        }))
+    };
+
+    const msg = message({
+        content: "<@!123> /RESUME John Smith"
+    });
+
+    // Test 1: Ignore bot messages
     msg.author.bot = true;
-    await handleMentionCommand(msg, client, backend);
+
+    await handleMentionCommand(
+        msg,
+        client,
+        backend,
+        backendControls
+    );
+
+    // Test 2: Ignore messages without mentions
     msg.author.bot = false;
     msg.mentions.has = () => false;
-    await handleMentionCommand(msg, client, backend);
-    assert.equal(execute.mock.callCount() + msg.reply.mock.callCount(), 0);
+
+    await handleMentionCommand(
+        msg,
+        client,
+        backend,
+        backendControls
+    );
+
+    assert.equal(
+        execute.mock.callCount() + msg.reply.mock.callCount(),
+        0
+    );
+
+    // Test 3: Route valid commands
     msg.mentions.has = user => user === client.user;
-    await handleMentionCommand(msg, client, backend);
-    called(execute, msg, client, backend, ["John", "Smith"]);
+
+    await handleMentionCommand(
+        msg,
+        client,
+        backend,
+        backendControls
+    );
+
+    called(
+        execute,
+        msg,
+        client,
+        backend,
+        ["John", "Smith"],
+        backendControls
+    );
+
+    // Test 4: Handle unknown commands
     msg.content = "<@123> /unknown";
-    await handleMentionCommand(msg, client, backend);
-    assert.match(msg.reply.mock.calls.at(-1).arguments[0], /Unknown command/);
+
+    await handleMentionCommand(
+        msg,
+        client,
+        backend,
+        backendControls
+    );
+
+    assert.match(
+        msg.reply.mock.calls.at(-1).arguments[0],
+        /Unknown command/
+    );
+
+    // Test 5: Handle command execution errors
     msg.content = "<@123> /resume";
-    execute.mock.mockImplementation(async () => { throw new Error("failure"); });
-    await handleMentionCommand(msg, client, backend);
-    assert.match(msg.reply.mock.calls.at(-1).arguments[0], /Something went wrong/);
+
+    execute.mock.mockImplementation(async () => {
+        throw new Error("failure");
+    });
+
+    await handleMentionCommand(
+        msg,
+        client,
+        backend,
+        backendControls
+    );
+
+    assert.match(
+        msg.reply.mock.calls.at(-1).arguments[0],
+        /Something went wrong/
+    );
 });

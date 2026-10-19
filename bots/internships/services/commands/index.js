@@ -14,6 +14,7 @@ const killCommand = require("./killCommand");
 const clearCommand = require("./clearCommand");
 const muteCommand = require("./muteCommand");
 const unmuteCommand = require("./unmuteCommand");
+const backendCommand = require("./backendCommands");
 
 // Discipline-specific commands
 const csCommand = require("./csCommand");
@@ -42,6 +43,7 @@ const commands = [
     clearCommand,
     muteCommand,
     unmuteCommand,
+    backendCommand,
     csCommand,
     meCommand,
     eeCommand,

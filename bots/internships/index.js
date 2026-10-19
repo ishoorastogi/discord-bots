@@ -3,6 +3,11 @@ const { Events } = require("discord.js");
 const BackendClient = require("./api/backendClient");
 
 const {
+  getBackendEnabled,
+  setBackendEnabled,
+} = require("./services/backendState");
+
+const {
   isMuted,
 } = require("./services/botState");
 
@@ -32,7 +37,8 @@ const client = createClient();
 
 const backend = new BackendClient(
   config.backend.host,
-  config.backend.port
+  config.backend.port,
+  getBackendEnabled()
 );
 
 async function runDigest() {
@@ -90,13 +96,41 @@ client.on("error", (error) => {
 });
 
 client.on(Events.MessageCreate, async (message) => {
+  // Ignore commands outside this instance's configured channel
+  if (message.channelId !== config.internshipChannelId) {
+    return;
+  }
+
   await handleMentionCommand(
     message,
     client,
     backend,
+    {
+      enableBackend,
+      disableBackend,
+      getBackendStatus,
+    }
   );
 });
 
 backend.connect();
+
+function enableBackend() {
+  setBackendEnabled(true);
+  backend.enable();
+
+  return backend.getStatus();
+}
+
+function disableBackend() {
+  setBackendEnabled(false);
+  backend.disconnect();
+
+  return backend.getStatus();
+}
+
+function getBackendStatus() {
+  return backend.getStatus();
+}
 
 client.login(config.discordToken);

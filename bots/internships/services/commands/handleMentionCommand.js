@@ -6,7 +6,7 @@ const {
     commandMap,
 } = require("./index");
 
-async function handleMentionCommand(message, client, backend) {
+async function handleMentionCommand(message, client, backend, backendControls) {
     if (message.author.bot) {
         return;
     }
@@ -32,7 +32,7 @@ async function handleMentionCommand(message, client, backend) {
     }
 
     try {
-        await command.execute(message, client, backend, args);
+        await command.execute(message, client, backend, args, backendControls);
     } catch (error) {
         logError(
             `Failed to execute ${commandName}`,
