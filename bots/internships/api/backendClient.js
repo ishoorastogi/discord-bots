@@ -1,7 +1,10 @@
 const net = require("node:net");
+const { EventEmitter } = require("node:events");
 
-class BackendClient {
+
+class BackendClient extends EventEmitter {
     constructor(host, port, enabled = true) {
+        super();
         this.host = host;
         this.port = port;
 
@@ -40,6 +43,8 @@ class BackendClient {
             this.connected = true;
 
             console.log("[TCP] Connected to backend");
+
+            this.emit("connected");
 
             this.send({
                 event: "PING",

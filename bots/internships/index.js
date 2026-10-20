@@ -133,4 +133,6 @@ function getBackendStatus() {
   return backend.getStatus();
 }
 
+
+
 client.login(config.discordToken);
