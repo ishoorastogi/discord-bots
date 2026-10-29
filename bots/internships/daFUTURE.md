@@ -2,7 +2,6 @@
 #### This is a small file that I'm going to keep with the intent of throwing ideas in whenever they come by
 
 ## Commands
-`/latest` - Top 5 most recent engineering internships, irrespective of field
 
 `/deletelastx` - Remove the last 'x' number of sent internships from the send database
 

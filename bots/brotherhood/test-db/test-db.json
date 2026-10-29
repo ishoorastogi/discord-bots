@@ -1,0 +1,39 @@
+{
+  "members": [
+    {
+      "name": "Ishan Rastogi",
+      "email": "ishanrastogi03@gmail.com",
+      "phone number": "9728784647",
+      "class": "alpha",
+      "major": "cs",
+      "grad year": "2026",
+      "positions held": "PNM Marshal, Spring 24'",
+      "family line": "Alvany Line",
+      "nicknames": "",
+      "brotherhood status": "active",
+      "linkedin link": "",
+      "big": "Ash Alvany",
+      "littles": [
+        "Stuti Dwivedi",
+        "Mayank Manchem",
+        "Advaith Madala",
+        "Sai Kottamasu"
+      ]
+    },
+    {
+      "name": "Suyash Joshua Katarapu",
+      "email": "sjkatarapu@gmail.com",
+      "phone number": "4694565477",
+      "class": "zeta",
+      "major": "cs",
+      "grad year": "2029",
+      "positions held": "",
+      "family line": "Nehith",
+      "nicknames": "Josh, UA",
+      "brotherhood status": "pnm",
+      "linkedin link": "",
+      "big": "Yash Pudi",
+      "littles": []
+    }
+  ]
+}

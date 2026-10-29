@@ -11,6 +11,8 @@
     "test:all": "node --test --test-reporter=spec bots/internships/services/tests/*.js bots/internships/repos/tests/*.js",
     "start:internships": "node bots/internships/index.js",
     "dev:internships": "node --watch bots/internships/index.js",
+    "start:brotherhood": "node bots/brotherhood/index.js",
+    "dev:brotherhood": "node --watch bots/brotherhood/index.js",
     "test:internship-config": "node --test bots/internships/services/tests/testConfig.js",
     "test:internship-content": "node bots/internships/repos/tests/testRepoContent.js",
     "test:internship-repo": "node bots/internships/repos/tests/testRepoConnection.js",
@@ -19,8 +21,10 @@
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
+    "csv-parse": "^7.0.3",
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.0",
+    "exceljs": "^4.4.0",
     "node-cron": "^4.2.1"
   }
 }
