@@ -43,7 +43,8 @@ async function execute(message, client, backend) {
             `Repository: ${config.repository.owner}/${config.repository.repo}`,
             `Branch: ${config.repository.branch}`,
             `Is Muted: ${muted ? "Yes" : "No"}`,
-            `Backend: ${backendState}`
+            `Backend: ${backendState}`,
+            `Backend port: ${config.backend.port}`
         ].join("\n")
     );
 }

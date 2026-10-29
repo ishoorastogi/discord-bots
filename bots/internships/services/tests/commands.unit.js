@@ -115,6 +115,45 @@ test("/status reports configuration, sent count, startup flag and muted state", 
     }
 });
 
+test("/port requires the owner and exactly one four-digit port before saving", async () => {
+    const save = mock.fn();
+    let ownerId = "owner";
+    const command = load(commandsDirectory + "setBackendPortCommand.js", {
+        [bot + "config.js"]: {
+            loadConfig: () => ({ botOwnerId: ownerId }),
+            setBackendPort: save,
+        },
+    });
+    assert.equal(command.name, "/port");
+    const msg = message();
+
+    msg.author.id = "someone-else";
+    await command.execute(msg, {}, {}, ["9000"]);
+    assert.match(msg.reply.mock.calls.at(-1).arguments[0], /permission/);
+    msg.author.id = "owner";
+    ownerId = undefined;
+    await command.execute(msg, {}, {}, ["9000"]);
+    assert.match(msg.reply.mock.calls.at(-1).arguments[0], /permission/);
+    ownerId = "owner";
+
+    for (const args of [undefined, [], ["123"], ["12345"], ["abcd"], ["12.3"], ["-123"], ["0000"], ["0800"], ["9000", "extra"]]) {
+        await command.execute(msg, {}, {}, args);
+        assert.match(msg.reply.mock.calls.at(-1).arguments[0], /Usage:/);
+    }
+    assert.equal(save.mock.callCount(), 0);
+
+    for (const port of ["1000", "9000", "9999"]) {
+        await command.execute(msg, {}, {}, [port]);
+        called(save, Number(port));
+        assert.ok(msg.reply.mock.calls.at(-1).arguments[0].includes(`updated to ${port}`));
+    }
+
+    save.mock.mockImplementation(() => { throw new Error("write failed"); });
+    msg.reply.mock.resetCalls();
+    await assert.rejects(command.execute(msg, {}, {}, ["9000"]), /write failed/);
+    assert.equal(msg.reply.mock.callCount(), 0);
+});
+
 for (const name of ["clear", "mute", "unmute", "kill"]) {
     test(`/${name} requires the owner and performs its authorized action`, async (t) => {
         const original = process.env.BOT_OWNER_ID;
@@ -189,9 +228,79 @@ test("/resume validates name/attachment and reports backend confirmations and fa
     assert.match(msg.reply.mock.calls.at(-1).arguments[0], /backend offline/);
 });
 
+test("/restart requires the owner and PM2, acknowledges first, and reports script failures", async (t) => {
+    const previousId = process.env.pm_id;
+    t.after(() => {
+        if (previousId === undefined) delete process.env.pm_id;
+        else process.env.pm_id = previousId;
+    });
+    const unref = mock.fn();
+    const child = new (require("node:events").EventEmitter)();
+    child.unref = unref;
+    const msg = message();
+    const spawn = mock.fn(() => {
+        assert.match(msg.reply.mock.calls.at(-1).arguments[0], /Restarting this bot/);
+        return child;
+    });
+    let ownerId = "owner";
+    const command = load(commandsDirectory + "restartCommand.js", {
+        "node:child_process": { spawn },
+        [bot + "config.js"]: { loadConfig: () => ({ botOwnerId: ownerId }) },
+    });
+    assert.equal(command.name, "/restart");
+    process.env.pm_id = "0";
+    msg.author.id = "other";
+    await command.execute(msg);
+    assert.match(msg.reply.mock.calls.at(-1).arguments[0], /permission/);
+    assert.equal(spawn.mock.callCount(), 0, "non-owners must never launch the script");
+    msg.author.id = "owner";
+    ownerId = undefined;
+    await command.execute(msg);
+    assert.match(msg.reply.mock.calls.at(-1).arguments[0], /permission/);
+    assert.equal(spawn.mock.callCount(), 0, "an unset owner must never launch the script");
+    ownerId = "owner";
+    for (const id of [undefined, "", "all", "-1", "1; echo bad"]) {
+        if (id === undefined) delete process.env.pm_id;
+        else process.env.pm_id = id;
+        await command.execute(msg);
+        assert.match(msg.reply.mock.calls.at(-1).arguments[0], /PM2/);
+    }
+    assert.equal(spawn.mock.callCount(), 0);
+
+    process.env.pm_id = "0";
+    await command.execute(msg);
+    const [file, args, options] = spawn.mock.calls[0].arguments;
+    assert.equal(file, "bash");
+    assert.deepEqual(args, [require("node:path").join(require("./helpers/unit").root, "shared/config/scripts/restart-script.sh")]);
+    assert.deepEqual(options, {
+        detached: true,
+        stdio: ["ignore", "ignore", "inherit"],
+        env: { ...process.env, BOT_OWNER_ID: "owner", RESTART_REQUESTER_ID: "owner" },
+    });
+    assert.equal(unref.mock.callCount(), 1);
+    child.emit("exit", 0, null);
+    child.emit("error", new Error("PM2 unavailable"));
+    assert.match(msg.reply.mock.calls.at(-1).arguments[0], /Failed to restart/);
+    await command.execute(msg);
+    const replyCount = msg.reply.mock.callCount();
+    child.emit("error", new Error("spawn failed"));
+    child.emit("exit", 1, null);
+    assert.equal(msg.reply.mock.callCount(), replyCount + 1, "report a failure only once");
+    await command.execute(msg);
+    msg.reply.mock.mockImplementation(async () => { throw new Error("Discord offline"); });
+    child.emit("exit", 1, null);
+    await new Promise(resolve => setImmediate(resolve));
+
+    spawn.mock.resetCalls();
+    await assert.rejects(command.execute(msg), /Discord offline/);
+    assert.equal(spawn.mock.callCount(), 0, "a failed acknowledgement must not trigger a restart");
+});
+
 test("command registry contains every command with unique names and callable handlers", () => {
     const { commands, commandMap } = load(commandsDirectory + "index.js");
-    assert.equal(commands.length, 18);
+    assert.equal(commands.length, 20);
+    assert.equal(commandMap.get("/port").name, "/port");
+    assert.equal(commandMap.get("/restart").name, "/restart");
     assert.equal(commandMap.size, commands.length);
     for (const command of commands) {
         assert.equal(typeof command.execute, "function");

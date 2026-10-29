@@ -2,7 +2,68 @@ const { test } = require("node:test");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
-const { assert, mock, load, bot, job, called } = require("./helpers/unit");
+const { assert, mock, load, bot, job, called, root } = require("./helpers/unit");
+
+test("restart script targets only the caller's PM2 ID and rejects invalid or missing targets", async (t) => {
+    const { spawnSync } = require("node:child_process");
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), "bot-restart-unit-"));
+    t.after(() => fs.rm(directory, { recursive: true, force: true }));
+    const capture = path.join(directory, "pm2-call.json");
+    const fakePm2 = path.join(directory, "pm2");
+    // An isolated PM2 executable records calls; no real processes are restarted.
+    await fs.writeFile(fakePm2, `#!${process.execPath}\n` +
+        'require("node:fs").writeFileSync(process.env.RESTART_TEST_CAPTURE, JSON.stringify({ args: process.argv.slice(2), home: process.env.PM2_HOME }));\n' +
+        'process.exit(Number(process.env.RESTART_TEST_EXIT || 0));\n', { mode: 0o755 });
+    const script = path.join(root, "shared/config/scripts/restart-script.sh");
+    const env = {
+        ...process.env, PATH: directory, RESTART_TEST_CAPTURE: capture,
+        PM2_HOME: path.join(directory, "isolated-pm2"), RESTART_TEST_EXIT: "0",
+        BOT_OWNER_ID: "123456789", RESTART_REQUESTER_ID: "123456789",
+    };
+    delete env.pm_id;
+    for (const id of ["0", "17"]) {
+        const result = spawnSync("/bin/bash", [script], { env: { ...env, pm_id: id }, cwd: directory, encoding: "utf8" });
+        assert.equal(result.status, 0, result.stderr);
+        assert.deepEqual(JSON.parse(await fs.readFile(capture, "utf8")), {
+            args: ["restart", id], home: env.PM2_HOME,
+        });
+    }
+    await fs.unlink(capture);
+    for (const [ownerId, requesterId] of [
+        ["123456789", "987654321"], ["123456789", undefined],
+        ["123456789", ""], [undefined, "123456789"], ["", "123456789"], ["", ""],
+    ]) {
+        const restartEnv = { ...env, pm_id: "0" };
+        if (ownerId === undefined) delete restartEnv.BOT_OWNER_ID;
+        else restartEnv.BOT_OWNER_ID = ownerId;
+        if (requesterId === undefined) delete restartEnv.RESTART_REQUESTER_ID;
+        else restartEnv.RESTART_REQUESTER_ID = requesterId;
+        const result = spawnSync("/bin/bash", [script], { env: restartEnv, encoding: "utf8" });
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Only the configured bot owner/);
+        await assert.rejects(fs.access(capture), { code: "ENOENT" });
+    }
+    for (const id of [undefined, "", "all", "-1", "1; echo bad"]) {
+        const restartEnv = { ...env };
+        if (id !== undefined) restartEnv.pm_id = id;
+        const result = spawnSync("/bin/bash", [script], { env: restartEnv, encoding: "utf8" });
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /numeric pm_id/);
+    }
+    const extraArgs = spawnSync("/bin/bash", [script, "all"], { env: { ...env, pm_id: "0" }, encoding: "utf8" });
+    assert.equal(extraArgs.status, 1);
+    await assert.rejects(fs.access(capture), { code: "ENOENT" });
+
+    const missingPm2 = spawnSync("/bin/bash", [script], {
+        env: { ...env, pm_id: "0", PATH: path.join(directory, "missing") }, encoding: "utf8",
+    });
+    assert.equal(missingPm2.status, 1);
+    assert.match(missingPm2.stderr, /pm2 is not available/);
+    const failedRestart = spawnSync("/bin/bash", [script], {
+        env: { ...env, pm_id: "17", RESTART_TEST_EXIT: "7" }, encoding: "utf8",
+    });
+    assert.equal(failedRestart.status, 7);
+});
 
 test("environment helpers load a file, preserve exports, and distinguish missing/empty/optional values", async (t) => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "bot-env-unit-"));

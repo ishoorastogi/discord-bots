@@ -11,10 +11,12 @@ const futureCommand = require("./futureCommand");
 
 //System commands
 const killCommand = require("./killCommand");
+const restartCommand = require("./restartCommand");
 const clearCommand = require("./clearCommand");
 const muteCommand = require("./muteCommand");
 const unmuteCommand = require("./unmuteCommand");
 const backendCommand = require("./backendCommands");
+const setBackendPortCommand = require("./setBackendPortCommand");
 
 // Discipline-specific commands
 const csCommand = require("./csCommand");
@@ -40,10 +42,12 @@ const commands = [
     sendMeAllCommand,
     sendmecsCommand,
     killCommand,
+    restartCommand,
     clearCommand,
     muteCommand,
     unmuteCommand,
     backendCommand,
+    setBackendPortCommand,
     csCommand,
     meCommand,
     eeCommand,

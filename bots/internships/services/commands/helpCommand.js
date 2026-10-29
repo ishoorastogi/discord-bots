@@ -13,10 +13,12 @@ async function execute(message) {
             "`/future` - Show future planned commands",
             "The following commands are only available to the bot owner:",
             "`/kill` - Shutdown the bot",
+            "`/restart` - Restart this bot (requires PM2)",
             "`/clear` - Clear the internship history",
             "`/mute` - Mute the bot (pause automatic internship messages)",
             "`/unmute` - Unmute the bot (resume automatic internship messages)",
             "`/backend` - Help commands for the backend connection",
+            "`/port 8000` - Set the backend port to a four-digit number (restart required)",
             "",
             "Example: `@Internship Job Bot /cs` will return the 5 most recent CS internships.",
         ].join("\n")

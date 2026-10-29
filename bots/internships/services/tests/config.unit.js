@@ -41,6 +41,40 @@ test("parseBoolean supports JSON booleans, case-insensitive strings and caller d
     }
 });
 
+test("setBackendPort preserves disk settings and refreshes configuration only after a successful save", () => {
+    const path = require("node:path");
+    const diskSettings = structuredClone(example);
+    diskSettings.backend.host = "updated-host";
+    diskSettings.extra = { preserved: true };
+    const read = mock.fn(() => JSON.stringify(diskSettings));
+    const write = mock.fn();
+    const configModule = load(bot + "config.js", {
+        [bot + "config.json"]: structuredClone(example),
+        "shared/config/env.js": {
+            loadEnvFile: mock.fn(), getEnv: () => "fixture-token", getOptionalEnv: () => undefined,
+        },
+        "node:fs": { readFileSync: read, writeFileSync: write },
+    });
+
+    for (const port of [999, 10000, "9000", 9000.5]) {
+        assert.throws(() => configModule.setBackendPort(port), /four-digit/);
+    }
+    assert.equal(write.mock.callCount(), 0);
+
+    configModule.setBackendPort(9000);
+    const [configPath, content, encoding] = write.mock.calls[0].arguments;
+    assert.equal(configPath, path.join(require("./helpers/unit").root, bot, "config.json"));
+    assert.equal(encoding, "utf8");
+    assert.deepEqual(JSON.parse(content), {
+        ...diskSettings, backend: { ...diskSettings.backend, port: 9000 },
+    });
+    assert.equal(configModule.loadConfig().backend.port, 9000);
+
+    write.mock.mockImplementation(() => { throw new Error("write failed"); });
+    assert.throws(() => configModule.setBackendPort(8001), /write failed/);
+    assert.equal(configModule.loadConfig().backend.port, 9000);
+});
+
 test("configuration reports missing files and malformed JSON with actionable context", () => {
     for (const [error, pattern] of [
         [Object.assign(new Error("not found"), { code: "MODULE_NOT_FOUND" }), /Copy example-config.json/],

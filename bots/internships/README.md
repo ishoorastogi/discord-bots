@@ -108,6 +108,23 @@ For local development with Node watch mode:
 npm run dev:internships
 ```
 
+To enable the owner-only `/restart` command, run the bot under PM2:
+
+```sh
+pm2 start bots/internships/index.js --name internship-bot
+```
+
+`/restart` calls `shared/config/scripts/restart-script.sh`, which inherits the
+calling bot's numeric PM2 `pm_id` and restarts only that process. Any PM2-managed
+bot can reuse the script by launching it with `bash` and inheriting its environment,
+including `PM2_HOME`. Each bot must first verify the Discord message author's ID
+against its configured `BOT_OWNER_ID`, then pass that authenticated author ID as
+`RESTART_REQUESTER_ID` in the script's environment. The script also rejects missing
+or mismatched owner/requester IDs. These environment checks protect the Discord
+command flow; local users with access to the bot's operating-system account can
+already control PM2. The script takes no arguments and rejects calls without a
+valid `pm_id`. Bots started directly with Node or npm must be restarted manually.
+
 When the bot logs in, it schedules the digest using
 `internships.schedule` and `internships.timezone`. If `RUN_ON_STARTUP` in `.env` is `true` (the default),
 it immediately runs one digest after connecting.
@@ -137,6 +154,7 @@ example:
 | `/unmute` | Bot owner | Resumes automatic scheduled internship messages. |
 | `/clear` | Bot owner | Clears saved internship history. |
 | `/kill` | Bot owner | Shuts down the bot process. |
+| `/restart` | Bot owner | Restarts only this bot through PM2. |
 
 Owner-only commands require `BOT_OWNER_ID` to match the Discord user ID of the
 message author.

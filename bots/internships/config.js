@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("node:fs");
 const cron = require("node-cron");
 
 const {
@@ -76,6 +77,18 @@ function loadRepositoryConfig() {
   };
 }
 
+function setBackendPort(port) {
+  if (!Number.isInteger(port) || port < 1000 || port > 9999) {
+    throw new Error("Backend port must be a four-digit number (1000-9999)");
+  }
+
+  const configPath = path.join(__dirname, "config.json");
+  const updatedSettings = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  updatedSettings.backend.port = port;
+  fs.writeFileSync(configPath, JSON.stringify(updatedSettings, null, 2) + "\n", "utf8");
+  settings = updatedSettings;
+}
+
 function loadConfig() {
   const cronSchedule = getSetting("internships.schedule", "0 8 * * *");
 
@@ -144,4 +157,5 @@ module.exports = {
   loadConfig,
   loadRepositoryConfig,
   parseBoolean,
+  setBackendPort,
 };
