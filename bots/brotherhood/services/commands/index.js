@@ -5,6 +5,7 @@ const updateCommand = require("./updateCommand");
 const deleteCommand = require("./deleteCommand");
 const brotherCommand = require("./brotherCommand");
 const helpCommand = require("./helpCommand");
+const restartCommand = require("./restartCommand");
 
 const commands = [
     testCommand,
@@ -14,6 +15,7 @@ const commands = [
     deleteCommand,
     brotherCommand,
     helpCommand,
+    restartCommand,
 ];
 
 const commandMap = new Map(

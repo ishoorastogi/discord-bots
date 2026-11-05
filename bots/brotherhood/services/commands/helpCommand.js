@@ -11,6 +11,7 @@ async function execute(message) {
             "`/help` - Show this message.",
             "",
             "The following commands are only available to the bot owner:",
+            "`/restart` - Restart this bot using PM2.",
             '`/update "Full Name" category value; category value` - Update one or more fields. Valid pairs save even if others fail.',
             "`/delete Full Name` - Request deletion, then confirm with `@Brotherhood Bot yes` within 60 seconds. Use `@Brotherhood Bot no` to cancel.",
             "",
