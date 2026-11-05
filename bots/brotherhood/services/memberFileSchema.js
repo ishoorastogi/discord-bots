@@ -143,7 +143,11 @@ const memberFileSchema = [
     },
     {
         name: "nicknames",
-        aliases: ["nickname", "Nicknames (Seperated by a comma)"],
+        aliases: [
+            "nickname",
+            "Nicknames (Separated by a comma)",
+            "Nicknames (Seperated by a comma)",
+        ],
     },
     {
         name: "brotherhood status",
