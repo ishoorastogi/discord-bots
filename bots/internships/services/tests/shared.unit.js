@@ -102,8 +102,13 @@ test("sendMessage validates the client, channel, payload and channel capabilitie
 
 test("notification embeds include all listings, dates, locations and application links", async () => {
     const sendMessage = mock.fn(async () => "sent");
-    const notification = load(bot + "sendInternshipNotification.js", { "shared/discord/sendMessage.js": { sendMessage } });
+    const upload = mock.fn(async () => "uploaded");
+    const notification = load(bot + "sendInternshipNotification.js", {
+        "shared/discord/sendMessage.js": { sendMessage },
+        [bot + "api/sendInternship.js"]: upload,
+    });
     const internships = [job(), job({ id: "other", location: "", datePosted: undefined })];
+    const backend = {};
     const embed = notification.buildInternshipEmbed(internships).toJSON();
     assert.equal(embed.title, "Top Internship Openings");
     assert.equal(embed.fields.length, 2);
@@ -116,8 +121,62 @@ test("notification embeds include all listings, dates, locations and application
     assert.throws(() => notification.buildInternshipEmbed([]), /no internships/);
     await assert.rejects(notification.sendInternshipNotification(null, "channel", internships), /client/);
     await assert.rejects(notification.sendInternshipNotification({}, " ", internships), /channel ID/);
-    assert.equal(await notification.sendInternshipNotification({}, "channel", internships), "sent");
+    assert.equal(
+        await notification.sendInternshipNotification(
+            {},
+            "channel",
+            internships,
+            {},
+            backend
+        ),
+        "sent"
+    );
     assert.equal(sendMessage.mock.calls[0].arguments[2].embeds.length, 1);
+    assert.equal(upload.mock.callCount(), 2);
+    assert.deepEqual(upload.mock.calls[0].arguments, [
+        backend,
+        { ...internships[0], id: "job-1" },
+    ]);
+    assert.deepEqual(upload.mock.calls[1].arguments, [
+        backend,
+        { ...internships[1], id: "other" },
+    ]);
+    await notification.sendInternshipNotification(
+        {},
+        "channel",
+        internships,
+        { title: "Command Listings" },
+        backend
+    );
+    assert.equal(
+        sendMessage.mock.calls[1].arguments[2].embeds[0].data.title,
+        "Command Listings"
+    );
+    assert.equal(upload.mock.callCount(), 4);
+    await notification.sendInternshipNotification(
+        {},
+        "channel",
+        internships,
+        {
+            title: "Random Previously Posted Internships",
+        },
+        backend
+    );
+    assert.equal(upload.mock.callCount(), 4);
+    upload.mock.mockImplementation(async () => {
+        throw new Error("backend rejected internship");
+    });
+    assert.equal(
+        await notification.sendInternshipNotification(
+            {},
+            "channel",
+            internships,
+            {},
+            backend
+        ),
+        "sent"
+    );
+    assert.equal(sendMessage.mock.callCount(), 4);
 });
 
 test("Discord error explanations cover known codes and unknown failures", () => {

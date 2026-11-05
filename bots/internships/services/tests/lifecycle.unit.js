@@ -80,22 +80,25 @@ function pollerSetup(t, boards = [{ boardToken: "acme", companyName: "Acme" }]) 
         { id: "accounting", role: "Accounting Intern", location: "NYC" },
     ]);
     const store = { has: mock.fn(id => id === "seen"), markSeen: mock.fn(async () => {}) };
+    const backend = {};
     const timeouts = t.mock.method(global, "setTimeout", callback => { queueMicrotask(callback); return 1; });
     const InternshipPoller = load(bot + "services/internshipPoller.js", {
         [bot + "sources/greenhouse.js"]: { fetchGreenhouseJobs: fetch },
         [bot + "sendInternshipNotification.js"]: { sendInternshipNotification: send },
     });
-    const poller = new InternshipPoller({}, { greenhouseBoards: boards, internshipChannelId: "channel", pollIntervalMinutes: 5 }, store);
-    return { poller, send, fetch, store, timeouts };
+    const poller = new InternshipPoller({}, { greenhouseBoards: boards, internshipChannelId: "channel", pollIntervalMinutes: 5 }, store, backend);
+    return { poller, send, fetch, store, timeouts, backend };
 }
 
 test("poller normalizes Greenhouse jobs, skips seen/ineligible jobs, sends and records new jobs", async (t) => {
-    const { poller, send, store, timeouts } = pollerSetup(t);
+    const { poller, send, store, timeouts, backend } = pollerSetup(t);
     await poller.runOnce();
     assert.equal(send.mock.callCount(), 1);
-    const [client, channelId, internships] = send.mock.calls[0].arguments;
+    const [client, channelId, internships, options, actualBackend] = send.mock.calls[0].arguments;
     assert.equal(client, poller.client);
     assert.equal(channelId, "channel");
+    assert.deepEqual(options, {});
+    assert.equal(actualBackend, backend);
     assert.equal(internships[0].id, "new");
     assert.equal(internships[0].applicationUrl, "https://example.com/apply");
     assert.equal(internships[0].datePosted, Date.parse("2026-01-02") / 1000);

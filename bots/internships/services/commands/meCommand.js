@@ -8,10 +8,10 @@ const {
 } = require("../runInternshipDigest");
 
 const {
-    formatInternshipDate,
-} = require("../internshipDateFormatter");
+    sendInternshipNotification,
+} = require("../../sendInternshipNotification");
 
-async function execute(message) {
+async function execute(message, client, backend) {
     const meInternships =
         await getCurrentMEInternships();
 
@@ -28,22 +28,13 @@ async function execute(message) {
         return;
     }
 
-    const response = [
-        "**Top 5 Mechanical Engineering Internships**",
-        "",
-        ...internshipsToSend.map(
-            (internship, index) =>
-                [
-                    `**${index + 1}. ${internship.company}**`,
-                    internship.role,
-                    `📍 ${internship.location}`,
-                    `📅 ${formatInternshipDate(internship)}`,
-                    `[Apply Here](${internship.applicationUrl})`,
-                ].join("\n")
-        ),
-    ].join("\n\n");
-
-    await message.reply(response);
+    await sendInternshipNotification(
+        client,
+        message.channelId,
+        internshipsToSend,
+        { title: "Top 5 Mechanical Engineering Internships" },
+        backend
+    );
 
     await saveShownInternships({
         internshipsToSend,

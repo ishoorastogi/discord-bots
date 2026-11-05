@@ -77,40 +77,38 @@ test("digest sends selected jobs before saving and propagates delivery failures"
             assert.equal(file.writeFile.mock.callCount(), 0);
             if (fails) throw new Error("send failed");
         });
-        const upload = mock.fn(async () => {
-            assert.equal(file.writeFile.mock.callCount(), 0);
-        });
         const digest = load(bot + "services/runInternshipDigest.js", {
             "fs/promises": file,
             [bot + "services/getCurrentInternships.js"]: { getCurrentInternships: async () => [job()] },
             [bot + "sendInternshipNotification.js"]: { sendInternshipNotification: send },
-            [bot + "api/sendInternship.js"]: upload,
         });
         if (fails) {
-            await assert.rejects(digest.runInternshipDigest({ client: {}, channelId: "channel" }), /send failed/);
+            await assert.rejects(
+                digest.runInternshipDigest({ backend: {}, client: {}, channelId: "channel" }),
+                /send failed/
+            );
             assert.equal(file.writeFile.mock.callCount(), 0);
         } else {
             const client = {};
             const backend = {};
             assert.deepEqual(await digest.runInternshipDigest({ backend, client, channelId: "channel" }), [job()]);
-            called(upload, backend, job());
-            called(send, client, "channel", [job()]);
+            called(send, client, "channel", [job()], {}, backend);
             assert.deepEqual(file.value(), [job()]);
         }
     }
 });
 
-test("digest requires backend acceptance before Discord delivery or history", async () => {
+test("digest propagates backend rejection before saving history", async () => {
     const file = memoryFile("[]");
-    const send = mock.fn(async () => {});
-    const upload = mock.fn(async () => {
+    const send = mock.fn(async (client, channel, internships, options, backend) => {
+        assert.deepEqual(internships, [job()]);
+        assert.ok(backend);
         throw new Error("backend rejected internship");
     });
     const digest = load(bot + "services/runInternshipDigest.js", {
         "fs/promises": file,
         [bot + "services/getCurrentInternships.js"]: { getCurrentInternships: async () => [job()] },
         [bot + "sendInternshipNotification.js"]: { sendInternshipNotification: send },
-        [bot + "api/sendInternship.js"]: upload,
     });
 
     await assert.rejects(
@@ -121,7 +119,7 @@ test("digest requires backend acceptance before Discord delivery or history", as
         }),
         /backend rejected/
     );
-    assert.equal(send.mock.callCount(), 0);
+    assert.equal(send.mock.callCount(), 1);
     assert.equal(file.writeFile.mock.callCount(), 0);
 });
 

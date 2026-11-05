@@ -14,8 +14,6 @@ const {
     sendInternshipNotification,
 } = require("../sendInternshipNotification");
 
-const sendInternship = require("../api/sendInternship");
-
 const SENT_INTERNSHIPS_PATH = path.join(
     __dirname,
     "../data/sentInternships.json"
@@ -202,19 +200,12 @@ async function runInternshipDigest({
         limit
     );
 
-    await Promise.all(
-        internshipsToSend.map((internship) =>
-            sendInternship(backend, {
-                ...internship,
-                id: createInternshipId(internship),
-            })
-        )
-    );
-
     await sendInternshipNotification(
         client,
         channelId,
-        internshipsToSend
+        internshipsToSend,
+        {},
+        backend
     );
 
     await saveShownInternships({

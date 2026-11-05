@@ -8,6 +8,16 @@ const {
     formatInternshipDate,
 } = require("./services/internshipDateFormatter");
 
+const {
+    createInternshipId,
+} = require("./services/internshipFilter");
+
+const sendInternship = require("./api/sendInternship");
+
+const {
+    logError,
+} = require("../../shared/utils/logger");
+
 /**
  * Builds a Discord embed containing the selected internships.
  *
@@ -18,9 +28,16 @@ const {
  *   applicationUrl: string,
  *   datePosted: string
  * }>} internships
+ * @param {{title?: string, description?: string}} [options]
  * @returns {EmbedBuilder}
  */
-function buildInternshipEmbed(internships) {
+function buildInternshipEmbed(
+    internships,
+    {
+        title = "Top Internship Openings",
+        description = "Here are the newest available internship listings.",
+    } = {}
+) {
     if (!Array.isArray(internships)) {
         throw new TypeError(
             "buildInternshipEmbed requires an array of internships."
@@ -34,10 +51,8 @@ function buildInternshipEmbed(internships) {
     }
 
     const embed = new EmbedBuilder()
-        .setTitle("Top Internship Openings")
-        .setDescription(
-            "Here are the newest available internship listings."
-        )
+        .setTitle(title)
+        .setDescription(description)
         .setTimestamp()
         .setFooter({
             text: "Summer 2027 Internship Bot",
@@ -60,6 +75,7 @@ function buildInternshipEmbed(internships) {
                 `[Apply here](${internship.applicationUrl})`,
         });
     });
+    
 
     return embed;
 }
@@ -70,12 +86,16 @@ function buildInternshipEmbed(internships) {
  * @param {import("discord.js").Client} client
  * @param {string} channelId
  * @param {Array<object>} internships
+ * @param {{title?: string, description?: string}} [options]
+ * @param {object} backend
  * @returns {Promise<import("discord.js").Message>}
  */
 async function sendInternshipNotification(
     client,
     channelId,
-    internships
+    internships,
+    options = {},
+    backend
 ) {
     if (!client) {
         throw new Error(
@@ -89,7 +109,27 @@ async function sendInternshipNotification(
         );
     }
 
-    const embed = buildInternshipEmbed(internships);
+    const embed = buildInternshipEmbed(internships, options);
+
+    if (options.title !== "Random Previously Posted Internships") {
+        const uploadResults = await Promise.allSettled(
+            internships.map((internship) =>
+                sendInternship(backend, {
+                    ...internship,
+                    id: createInternshipId(internship),
+                })
+            )
+        );
+
+        uploadResults.forEach((result, index) => {
+            if (result.status === "rejected") {
+                logError(
+                    `Failed to upload internship ${createInternshipId(internships[index])}; continuing Discord notification.`,
+                    result.reason
+                );
+            }
+        });
+    }
 
     return sendMessage(client, channelId, {
         embeds: [embed],

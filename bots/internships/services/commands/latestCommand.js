@@ -3,10 +3,10 @@ const {
 } = require("../getCurrentInternships");
 
 const {
-    formatInternshipDate,
-} = require("../internshipDateFormatter");
+    sendInternshipNotification,
+} = require("../../sendInternshipNotification");
 
-async function execute(message) {
+async function execute(message, client, backend) {
     const internships = (
         await getCurrentInternships()
     ).slice(0, 5);
@@ -18,22 +18,13 @@ async function execute(message) {
         return;
     }
 
-    const response = [
-        "5 Latest Internships",
-        ...internships.map
-        (
-            (internship, index) =>
-                [
-                    `${index + 1}. ${internship.company}`,
-                    internship.role,
-                    `${internship.location || "Location not provided"}`,
-                    `${formatInternshipDate(internship)}`,
-                    `[Apply Here](${internship.applicationUrl})`,
-                ].join("\n")
-        ),
-    ].join("\n");
-
-    await message.reply(response);
+    await sendInternshipNotification(
+        client,
+        message.channelId,
+        internships,
+        { title: "5 Latest Internships" },
+        backend
+    );
 }
 
 module.exports = {

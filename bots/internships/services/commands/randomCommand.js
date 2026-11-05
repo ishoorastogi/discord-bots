@@ -3,10 +3,10 @@ const {
 } = require("../runInternshipDigest");
 
 const {
-    formatInternshipDate,
-} = require("../internshipDateFormatter");
+    sendInternshipNotification,
+} = require("../../sendInternshipNotification");
 
-async function execute(message) {
+async function execute(message, client, backend) {
     const sentInternships =
         await readSentInternships();
 
@@ -35,22 +35,16 @@ async function execute(message) {
 
     const randomInternships = shuffled.slice(0, 5);
 
-    const response = [
-        "**Random Previously Posted Internships**",
-        "",
-        ...randomInternships.map(
-            (internship, index) =>
-                [
-                    `**${index + 1}. ${internship.company}**`,
-                    internship.role,
-                    `📍 ${internship.location}`,
-                    `📅 ${formatInternshipDate(internship)}`,
-                    `[Apply Here](${internship.applicationUrl})`,
-                ].join("\n")
-        ),
-    ].join("\n\n");
-
-    await message.reply(response);
+    await sendInternshipNotification(
+        client,
+        message.channelId,
+        randomInternships,
+        {
+            title: "Random Previously Posted Internships",
+            description: "A random selection of previously posted internships.",
+        },
+        backend
+    );
 }
 
 module.exports = {

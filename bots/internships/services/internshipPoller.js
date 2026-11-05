@@ -4,10 +4,11 @@ const { sendInternshipNotification } = require("../sendInternshipNotification");
 const { logInfo, logWarn, logError } = require("../../../shared/utils/logger");
 
 class InternshipPoller {
-    constructor(client, config, seenJobsStore) {
+    constructor(client, config, seenJobsStore, backend) {
         this.client = client;
         this.config = config;
         this.seenJobsStore = seenJobsStore;
+        this.backend = backend;
 
         this.timer = null;
         this.running = false;
@@ -59,7 +60,9 @@ class InternshipPoller {
                         await sendInternshipNotification(
                             this.client,
                             this.config.internshipChannelId,
-                            [job]
+                            [job],
+                            {},
+                            this.backend
                         );
 
                         await this.seenJobsStore.markSeen(job.id);

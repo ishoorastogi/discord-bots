@@ -14,27 +14,34 @@ for (const [name, field, title] of [
             const current = mock.fn(async () => internships);
             const select = mock.fn(async () => result);
             const save = mock.fn(async () => {});
+            const send = mock.fn(async () => {});
             const command = load(commandsDirectory + name + "Command.js", {
                 [bot + "services/getCurrentInternships.js"]: { [`getCurrent${field}Internships`]: current },
                 [bot + "services/runInternshipDigest.js"]: { getInternshipsToSend: select, saveShownInternships: save },
+                [bot + "sendInternshipNotification.js"]: { sendInternshipNotification: send },
             });
-            const msg = message();
-            await command.execute(msg);
+            const msg = message({ channelId: "channel" });
+            const client = {};
+            const backend = {};
+            await command.execute(msg, client, backend);
             assert.equal(command.name, "/" + name);
             assert.equal(current.mock.callCount(), 1);
             called(select, internships, 5);
-            const response = msg.reply.mock.calls[0].arguments[0];
-            assert.ok(response.includes(title));
             if (empty) {
-                assert.match(response, /No current/);
+                assert.match(msg.reply.mock.calls[0].arguments[0], /No current/);
                 assert.equal(save.mock.callCount(), 0);
             } else {
-                assert.match(response, /Acme/);
-                assert.match(response, /Apply Here/);
-                assert.match(response, /Aug 22/);
+                called(
+                    send,
+                    client,
+                    "channel",
+                    internships,
+                    { title: `Top 5 ${title} Internships` },
+                    backend
+                );
                 called(save, result);
-                msg.reply.mock.mockImplementation(async () => { throw new Error("reply failed"); });
-                await assert.rejects(command.execute(msg), /reply failed/);
+                send.mock.mockImplementation(async () => { throw new Error("send failed"); });
+                await assert.rejects(command.execute(msg, client, backend), /send failed/);
                 assert.equal(save.mock.callCount(), 1, "failed sends must not update history");
             }
         }
@@ -53,18 +60,25 @@ for (const name of ["help", "future"]) {
 
 test("/latest limits results to five and reports empty results", async () => {
     let internships = Array.from({ length: 6 }, (_, index) => job({ id: String(index), company: `Company ${index}`, location: "" }));
+    const send = mock.fn(async () => {});
     const command = load(commandsDirectory + "latestCommand.js", {
         [bot + "services/getCurrentInternships.js"]: { getCurrentInternships: async () => internships },
+        [bot + "sendInternshipNotification.js"]: { sendInternshipNotification: send },
     });
-    const msg = message();
-    await command.execute(msg);
-    let response = msg.reply.mock.calls.at(-1).arguments[0];
-    assert.match(response, /5 Latest/);
-    assert.match(response, /Company 4/);
-    assert.doesNotMatch(response, /Company 5/);
-    assert.match(response, /Location not provided/);
+    const msg = message({ channelId: "channel" });
+    const client = {};
+    const backend = {};
+    await command.execute(msg, client, backend);
+    called(
+        send,
+        client,
+        "channel",
+        internships.slice(0, 5),
+        { title: "5 Latest Internships" },
+        backend
+    );
     internships = [];
-    await command.execute(msg);
+    await command.execute(msg, client, backend);
     assert.match(msg.reply.mock.calls.at(-1).arguments[0], /No current/);
 });
 
@@ -72,17 +86,25 @@ test("/random shuffles a copy, limits to five, and handles empty history", async
     t.mock.method(Math, "random", () => 0);
     let internships = Array.from({ length: 6 }, (_, index) => job({ id: String(index), company: `Company ${index}` }));
     const original = structuredClone(internships);
+    const send = mock.fn(async () => {});
     const command = load(commandsDirectory + "randomCommand.js", {
         [bot + "services/runInternshipDigest.js"]: { readSentInternships: async () => internships },
+        [bot + "sendInternshipNotification.js"]: { sendInternshipNotification: send },
     });
-    const msg = message();
-    await command.execute(msg);
-    const response = msg.reply.mock.calls.at(-1).arguments[0];
-    assert.match(response, /Random Previously/);
-    assert.equal((response.match(/Apply Here/g) || []).length, 5);
+    const msg = message({ channelId: "channel" });
+    const client = {};
+    const backend = {};
+    await command.execute(msg, client, backend);
+    const [calledClient, channelId, selected, options, calledBackend] = send.mock.calls[0].arguments;
+    assert.equal(calledClient, client);
+    assert.equal(channelId, "channel");
+    assert.equal(selected.length, 5);
+    assert.equal(options.title, "Random Previously Posted Internships");
+    assert.equal(options.description, "A random selection of previously posted internships.");
+    assert.equal(calledBackend, backend);
     assert.deepEqual(internships, original);
     internships = [];
-    await command.execute(msg);
+    await command.execute(msg, client);
     assert.match(msg.reply.mock.calls.at(-1).arguments[0], /No previously sent/);
 });
 
