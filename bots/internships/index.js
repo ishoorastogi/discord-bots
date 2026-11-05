@@ -45,6 +45,7 @@ async function runDigest() {
     }
 
     const internships = await runInternshipDigest({
+      backend,
       client,
       channelId: config.internshipChannelId,
       limit: 5,

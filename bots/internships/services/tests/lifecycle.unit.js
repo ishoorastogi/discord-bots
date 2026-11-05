@@ -35,7 +35,7 @@ test("entry point wires login, backend connection, ready/scheduled digests, ment
     const { Events } = require("discord.js");
     await readyListeners.get(Events.ClientReady)({ user: { tag: "test-bot" } });
     assert.equal(digest.mock.callCount(), 1);
-    called(digest, { client, channelId: fixtureConfig.internshipChannelId, limit: 5 });
+    called(digest, { backend, client, channelId: fixtureConfig.internshipChannelId, limit: 5 });
     const [expression, callback, options] = schedule.mock.calls[0].arguments;
     assert.equal(expression, fixtureConfig.cronSchedule);
     assert.deepEqual(options, { timezone: fixtureConfig.timezone });

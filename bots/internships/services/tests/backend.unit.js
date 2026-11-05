@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const { EventEmitter } = require("node:events");
-const { assert, mock, load, bot, called } = require("./helpers/unit");
+const { assert, mock, load, bot, job, called } = require("./helpers/unit");
 
 function setup(t) {
     for (const name of ["log", "error", "warn"]) t.mock.method(console, name, () => {});
@@ -141,6 +141,80 @@ test("resume upload validates PDF data, streams chunks and waits for backend con
     });
     backend.sendWithConfirmation.mock.mockImplementation(async () => { throw new Error("rejected"); });
     await assert.rejects(sendResume(backend, attachment, "John", "12345"), /rejected/);
+});
+
+test("internship upload validates listing data and waits for backend confirmation", async () => {
+    const backend = {
+        connected: true,
+        socket: {},
+        sendWithConfirmation: mock.fn(async () => ({})),
+    };
+    const sendInternship = load(bot + "api/sendInternship.js", {
+        "node:crypto": { randomUUID: () => "internship-request-id" },
+    });
+    const internship = {
+        id: " job-1 ",
+        company: " Acme ",
+        role: " Software Engineering Intern ",
+        location: " Austin, TX ",
+        locations: [" Austin, TX ", "Remote"],
+        applicationUrl: " https://example.com/apply ",
+        datePosted: "1787356800",
+    };
+
+    assert.equal(
+        await sendInternship(backend, internship),
+        "internship-request-id"
+    );
+    called(backend.sendWithConfirmation, {
+        event: "INTERNSHIP_UPLOAD",
+        request_id: "internship-request-id",
+        data: {
+            internship_id: "job-1",
+            company: "Acme",
+            role: "Software Engineering Intern",
+            location: "Austin, TX",
+            locations: ["Austin, TX", "Remote"],
+            application_url: "https://example.com/apply",
+            date_posted: 1787356800,
+        },
+    });
+
+    backend.sendWithConfirmation.mock.mockImplementation(async () => {
+        throw new Error("rejected");
+    });
+    await assert.rejects(
+        sendInternship(backend, internship),
+        /rejected/
+    );
+});
+
+test("internship upload rejects disconnected backends and invalid listings", async () => {
+    const backend = {
+        connected: true,
+        socket: {},
+        sendWithConfirmation: mock.fn(async () => ({})),
+    };
+    const sendInternship = load(bot + "api/sendInternship.js");
+
+    await assert.rejects(
+        sendInternship(null, job()),
+        /not connected/
+    );
+
+    for (const [change, error] of [
+        [{ id: "" }, /ID/],
+        [{ company: "" }, /company/],
+        [{ role: "" }, /role/],
+        [{ location: "" }, /location/],
+        [{ applicationUrl: "" }, /application URL/],
+        [{ datePosted: "not-a-date" }, /date posted/],
+    ]) {
+        await assert.rejects(
+            sendInternship(backend, job(change)),
+            error
+        );
+    }
 });
 
 test("resume validation rejects disconnected backend, invalid names/IDs/files and oversized metadata before fetch", async (t) => {
