@@ -238,17 +238,24 @@ function createRouter(database = createDatabaseHandlers()) {
             const name = escapeMarkdown(file.fileName || "attachment");
             if (file.ok) {
                 try {
-                    const members = file.sheets.flatMap(sheet => sheet.rows.map(row => row.data));
+                    const members = file.sheets.flatMap(
+                        sheet => sheet.rows.map(row => row.data)
+                    );
+
                     const saved = await database.addMembers(members);
-                    lines.push(`Imported ${name} successfully (${saved.added} ${saved.added === 1 ? "record" : "records"} saved).`);
+
+                    lines.push(
+                        `Imported ${name} successfully:\n` +
+                        `- ${saved.added} members added\n` +
+                        `- ${saved.updated} members updated\n` +
+                        `- ${saved.unchanged} members unchanged`
+                    );
                 } catch (error) {
                     logError("Failed to save uploaded members to the database.", error);
-                    lines.push(`Could not save ${name} to the database. No records from this file were added.`);
-                }
-            } else {
-                lines.push(`Could not parse ${name}:`);
-                for (const error of file.errors) {
-                    lines.push(escapeMarkdown(errorLocation(error) + error.message));
+
+                    lines.push(
+                        `Could not import ${name}. No changes from this file were saved.`
+                    );
                 }
             }
         }

@@ -2,7 +2,7 @@ const path = require("node:path");
 const { parse } = require("csv-parse/sync");
 const ExcelJS = require("exceljs");
 
-const SUPPORTED_EXTENSIONS = new Set([".csv", ".xlsx", ".xslx"]);
+const SUPPORTED_EXTENSIONS = new Set([".csv", ".xlsx"]);
 
 function isSupportedFile(fileName) {
     return SUPPORTED_EXTENSIONS.has(path.extname(fileName || "").toLowerCase());

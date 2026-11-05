@@ -45,4 +45,100 @@ async function insertUsers(users, username, password) {
     }, username, password);
 }
 
-module.exports = { insertUser, insertUsers, upsertUser };
+async function upsertUsers(users, username, password) {
+    if (!Array.isArray(users)) {
+        throw new TypeError("Provide an array of users.");
+    }
+
+    const seen = new Set();
+
+    const records = users.map(user => {
+        if (
+            !user ||
+            typeof user.name !== "string" ||
+            !user.name.trim()
+        ) {
+            throw new Error("Every user must have a name.");
+        }
+
+        const name = user.name.trim().replace(/\s+/g, " ");
+        const key = name.toLowerCase();
+
+        if (seen.has(key)) {
+            throw new Error(`Duplicate member in uploaded file: ${name}`);
+        }
+
+        seen.add(key);
+
+        return {
+            name,
+            fields: userFields({ ...user, name }),
+        };
+    });
+
+    return withTransaction(async client => {
+        await client.query(
+            "LOCK TABLE public.users IN SHARE ROW EXCLUSIVE MODE"
+        );
+
+        const results = [];
+
+        for (const { name, fields } of records) {
+            const query = matchingUsersQuery(name);
+            const { rows: matches } = await client.query(
+                query.sql,
+                query.values
+            );
+
+            uniqueUser(matches);
+
+            if (!matches.length) {
+                const { sql, values } = insertQuery(fields);
+                const { rows } = await client.query(sql, values);
+
+                results.push({
+                    action: "inserted",
+                    user: rows[0],
+                });
+
+                continue;
+            }
+
+            const updates = fields.filter(
+                ([column]) => column !== "name"
+            );
+
+            if (!updates.length) {
+                results.push({
+                    action: "unchanged",
+                    user: matches[0],
+                });
+                continue;
+            }
+
+            const values = updates.map(([, value]) => value);
+            values.push(matches[0].user_id);
+
+            const assignments = updates.map(
+                ([column], index) => `"${column}" = $${index + 1}`
+            );
+
+            const { rows } = await client.query(
+                `UPDATE public.users
+                 SET ${assignments.join(", ")}
+                 WHERE user_id = $${values.length}
+                 RETURNING *`,
+                values
+            );
+
+            results.push({
+                action: "updated",
+                user: rows[0],
+            });
+        }
+
+        return results;
+    }, username, password);
+}
+
+module.exports = { insertUser, insertUsers, upsertUser, upsertUsers };

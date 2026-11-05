@@ -17,12 +17,23 @@ function fromRow(row) {
 }
 
 function toRow(member) {
-    return Object.fromEntries(Object.entries(member).map(([label, value]) => {
-        const column = columns[label] || label;
-        if (column === "grad_year" && typeof value === "string") value = value.trim() ? Number(value) : null;
-        if (column === "nicknames" && Array.isArray(value)) value = value.join("; ");
-        return [column, value];
-    }));
+    return Object.fromEntries(
+        Object.entries(member)
+            .filter(([label]) => label !== "timestamp")
+            .map(([label, value]) => {
+                const column = columns[label] || label;
+
+                if (column === "grad_year" && typeof value === "string") {
+                    value = value.trim() ? Number(value) : null;
+                }
+
+                if (column === "nicknames" && Array.isArray(value)) {
+                    value = value.join("; ");
+                }
+
+                return [column, value];
+            })
+    );
 }
 
 function uniqueMember(rows) {
@@ -67,8 +78,13 @@ function createDatabaseHandlers() {
             normalized.name = String(normalized.name).trim().replace(/\s+/g, " ");
             return toRow(normalized);
         });
-        const saved = await insert.insertUsers(rows, ...credentials());
-        return { added: saved.length };
+        const results = await insert.upsertUsers(rows, ...credentials());
+
+        return {
+            added: results.filter(result => result.action === "inserted").length,
+            updated: results.filter(result => result.action === "updated").length,
+            unchanged: results.filter(result => result.action === "unchanged").length,
+        };
     }
 
     async function updateMemberFields(name, pairs) {
