@@ -65,7 +65,7 @@ const memberFileSchema = [
     },
     {
         name: "class",
-        aliases: ["pledge class"],
+        aliases: ["pledge class", "pnm class"],
     },
     {
         name: "major",
@@ -78,6 +78,7 @@ const memberFileSchema = [
             "graduation date",
             "expected graduation",
             "expected graduation date",
+            "Expected or Confirmed Grad Year (Any day is fine, only the year is important)",
         ],
         validate(value) {
             if (!text(value)) {
@@ -133,19 +134,20 @@ const memberFileSchema = [
             "positions they have held",
             "positions they have held, and which ones",
             "position history",
+            "Past Exec Positions, separated by a ; (Position, Semester, Year) Ex: PNM Marshal, Fall 24';",
         ],
     },
     {
         name: "family line",
-        aliases: ["family lineage"],
+        aliases: ["family lineage", "family tree", "lineage", "family line name"],
     },
     {
         name: "nicknames",
-        aliases: ["nickname"],
+        aliases: ["nickname", "Nicknames (Seperated by a comma)"],
     },
     {
         name: "brotherhood status",
-        aliases: ["status"],
+        aliases: ["status", "current active status"],
     },
     {
         name: "linkedin link",
@@ -208,6 +210,7 @@ const memberFileSchema = [
             "litters",
             "litter",
             "little brothers",
+            "Little(s) (Seperate littles by commas)",
         ],
         required: false,
         defaultValue: () => [],
@@ -223,7 +226,11 @@ const memberFileSchema = [
     },
     {
         name: "employer",
-        aliases: ["works at", "company"],
+        aliases: [
+            "works at",
+            "company",
+            "employer (if you have one)",
+        ],
         required: false,
     },
 ];
