@@ -110,6 +110,7 @@ const memberFileSchema = [
         },
         normalize: relationshipNames,
     },
+    { name: "employer", aliases: ["works at", "company"], required: false },
 ];
 
 function normalizeMemberRelationships(member) {

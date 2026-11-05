@@ -3,10 +3,11 @@ const { test } = require("node:test");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
-const database = require("../../api/dbs-client");
+const { database } = require("./helpers/router");
+const { createLocalDatabase } = require("./helpers/localDatabase");
 const brotherCommand = require("../commands/brotherCommand");
-const { handleMentionCommand } = require("../commands/handleMentionCommand");
-const { routeResponse } = require("../router");
+const { handleMentionCommand } = require("./helpers/router");
+const { routeResponse } = require("./helpers/router");
 const stored = record => ({ big: "", littles: [], ...record });
 
 const member = {
@@ -20,7 +21,7 @@ async function fixture(t, members = [member]) {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "brotherhood-lookup-"));
     t.after(() => fs.rm(directory, { recursive: true, force: true }));
     const file = path.join(directory, "test-db.json");
-    const client = database.createLocalDatabase(file);
+    const client = createLocalDatabase(file);
     await client.addMembers(members);
     return { file, client };
 }

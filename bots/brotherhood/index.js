@@ -1,5 +1,6 @@
 const path = require("node:path");
 const { Events, GatewayIntentBits, IntentsBitField } = require("discord.js");
+
 const { loadEnvFile, getEnv } = require("../../shared/config/env");
 const { createClient } = require("../../shared/discord/createClient");
 const { logInfo, logError } = require("../../shared/utils/logger");
@@ -7,9 +8,16 @@ const { handleMentionCommand } = require("./services/commands/handleMentionComma
 
 async function start() {
   loadEnvFile(path.join(__dirname, ".env"));
+
+  const { connectDatabase, disconnectDatabase } = require("./db");
+
   const token = getEnv("DISCORD_TOKEN");
+
+  // Initialize database
+  await connectDatabase();
+
   const client = createClient();
-  // Mention commands do not require the privileged MessageContent intent.
+
   client.options.intents = new IntentsBitField([
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
@@ -29,8 +37,23 @@ async function start() {
     await client.login(token);
   } catch (error) {
     client.destroy();
+    await disconnectDatabase();
     throw error;
   }
+
+  // Graceful shutdown
+  async function shutdown() {
+    logInfo("Shutting down Brotherhood Bot...");
+
+    client.destroy();
+
+    await disconnectDatabase();
+
+    process.exit(0);
+  }
+
+  process.once("SIGINT", shutdown);
+  process.once("SIGTERM", shutdown);
 }
 
 start().catch((error) => {

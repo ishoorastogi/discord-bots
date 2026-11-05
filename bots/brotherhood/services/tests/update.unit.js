@@ -4,10 +4,11 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const updateCommand = require("../commands/updateCommand");
-const { handleMentionCommand } = require("../commands/handleMentionCommand");
-const { routeResponse } = require("../router");
+const { handleMentionCommand } = require("./helpers/router");
+const { routeResponse } = require("./helpers/router");
 const { memberFileSchema } = require("../memberFileSchema");
-const database = require("../../api/dbs-client");
+const { database } = require("./helpers/router");
+const { createLocalDatabase } = require("./helpers/localDatabase");
 const stored = record => ({ big: "", littles: [], ...record });
 
 beforeEach(t => {
@@ -32,14 +33,14 @@ async function fixture(t) {
     const file = path.join(directory, "test-db.json");
     return {
         file,
-        client: database.createLocalDatabase(file),
+        client: createLocalDatabase(file),
         read: async () => JSON.parse(await fs.readFile(file, "utf8")),
     };
 }
 
 test("update accepts every supplied category, full names, and values containing spaces", async () => {
     const values = ["John Doe", "john@example.com", "+1 (312) 555-1234", "Alpha", "Computer Science", "2028",
-        "President and Treasurer", "Oak", "Johnny", "Active", "https://www.linkedin.com/in/john", "Big Brother", "Little One, Little Two"];
+        "President and Treasurer", "Oak", "Johnny", "Active", "https://www.linkedin.com/in/john", "Big Brother", "Little One, Little Two", "Acme Corporation"];
     for (const [index, category] of memberFileSchema.entries()) {
         const result = await command(`"John Smith" ${category.name} ${values[index]}`);
         assert.deepEqual(result, {
@@ -59,7 +60,7 @@ test("update supports quoted categories, header aliases, and single-word names",
 });
 
 test("unknown categories are rejected even when values contain a valid category name", async () => {
-    for (const input of ['"John Smith" salary major', '"John Smith" __proto__ value', '"John Smith" company Example']) {
+    for (const input of ['"John Smith" salary major', '"John Smith" __proto__ value', '"John Smith" compensation Example']) {
         const result = await command(input);
         assert.equal(result.ok, false);
         assert.match(result.message, /Unknown category/);
@@ -140,7 +141,7 @@ test("duplicate matching names and conflicting renames are rejected without alte
 
 test("database rejects invalid fields and values even when called without the command", async t => {
     const { client } = await fixture(t);
-    await assert.rejects(client.updateMember("John", "company", "Example"), /Unknown member category/);
+    await assert.rejects(client.updateMember("John", "salary", "Example"), /Unknown member category/);
     await assert.rejects(client.updateMember("John", "email", "invalid"), /valid email/);
     await assert.rejects(client.updateMember("", "major", "Math"), /Name is required/);
 });

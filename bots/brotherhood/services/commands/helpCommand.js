@@ -7,6 +7,7 @@ async function execute(message) {
             "`/brother Full Name` - Show all information about a person. Names, nicknames, and partial names work.",
             "`/fileintake` - Import an attached CSV or XLSX member file.",
             "`/test` - Check whether the bot is online.",
+            "`/status` - Show bot, cache, and database status.",
             "`/help` - Show this message.",
             "",
             "The following commands are only available to the bot owner:",

@@ -3,10 +3,11 @@ const { test } = require("node:test");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
-const database = require("../../api/dbs-client");
+const { database } = require("./helpers/router");
+const { createLocalDatabase } = require("./helpers/localDatabase");
 const deleteCommand = require("../commands/deleteCommand");
-const { handleMentionCommand } = require("../commands/handleMentionCommand");
-const { handleDeleteConfirmation, routeResponse } = require("../router");
+const { handleMentionCommand } = require("./helpers/router");
+const { handleDeleteConfirmation, routeResponse } = require("./helpers/router");
 
 const bot = { user: { id: "999" } };
 const stored = record => ({ big: "", littles: [], ...record });
@@ -29,7 +30,7 @@ async function fixture(t, members = [{ name: "John Smith", major: "Math" }, { na
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "brotherhood-delete-"));
     t.after(() => fs.rm(directory, { recursive: true, force: true }));
     const file = path.join(directory, "test-db.json");
-    const client = database.createLocalDatabase(file);
+    const client = createLocalDatabase(file);
     await client.addMembers(members);
     const find = t.mock.method(database, "findMember", client.findMember);
     const remove = t.mock.method(database, "deleteMember", client.deleteMember);

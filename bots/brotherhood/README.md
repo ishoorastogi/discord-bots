@@ -1,8 +1,21 @@
 Run `npm run start:brotherhood` from the repository root.
+Configure shared `DB_HOST`, `DB_PORT`, and `DB_NAME` in `shared/dbs/.env`.
+Keep Brotherhood's `DB_USER` and `DB_PASSWORD` in `bots/brotherhood/.env`.
+`shared/dbs/config.js` loads the shared connection settings so other applications
+can reuse them with their own credentials. Process environment variables take
+precedence over values in `.env` files. The bot's database
+role needs the table and identity-sequence permissions from the provided schema.
 
 Mention the bot with `/test` to receive `bot is online`.
+Use `@Brotherhood Bot /status` to see the bot's Discord readiness, cache status
+(`Not implemented`), and PostgreSQL connection state (`Connected`, `Reconnecting`,
+`Disconnected`, or `Stopped`). Database status reflects the existing background
+health checks.
 Use `@Brotherhood Bot /help` to see available commands. Unknown commands point to
 this help message.
+
+Member lookup, imports, updates, and confirmed deletions use the shared PostgreSQL
+scripts in `shared/dbs/crud`. Discord IDs are optional for these commands.
 
 Anyone can look up a member with `@Brotherhood Bot /brother Full Name` or
 `@Brotherhood Bot /brother nickname`. Names with spaces may be quoted or left
@@ -39,7 +52,13 @@ Examples:
 @Brotherhood Bot /update "John Smith" "phone number" "+1 (312) 555-1234"
 @Brotherhood Bot /update "Ishan Rastogi" class Alpha Class; major Computer Science; grad year 2028
 @Brotherhood Bot /update "Ishan Rastogi" big John Smith; littles "Jane Doe, Alex Patel"
+@Brotherhood Bot /update "Ishan Rastogi" employer Acme Corporation
+@Brotherhood Bot /update "Ishan Rastogi" works at Acme Corporation
+@Brotherhood Bot /update "Ishan Rastogi" company Acme Corporation
 ```
+
+`employer`, `works at`, and `company` all update the same employer field. Company
+names can contain spaces. Use `employer ""` (or either alias) to clear the field.
 
 Categories and field validation use the same rules as file imports below.
 Unknown categories are rejected. Use `""` as the value to clear an optional field.
@@ -48,7 +67,7 @@ fail. The reply lists the saved categories and each failed pair with its reason,
 followed by category help and an example. A conflicting name change is skipped
 while other valid fields are updated. If all pairs fail, no member is created or
 changed. Ambiguous matching names and database write failures prevent all changes.
-The router updates the matching member in the local test database, or creates a
+The router updates the matching member in PostgreSQL or creates a
 member and sets that field when the name is new. Names match without regard to
 case or extra spaces. Duplicate matching names are rejected rather than choosing
 a record. A unique first name or name prefix also works: `Sai`, `"Sai K"`, and
@@ -66,10 +85,11 @@ replaces its value; use `""` to clear it. Relationship names are stored as provi
 
 To import a member file, send `@Brotherhood Bot /fileintake` with a CSV or XLSX
 attachment. The bot confirms a successful import or reports each error's CSV line
-range or worksheet name, row, and column. Valid files are appended to the
-`members` array in `test-db/test-db.json`. A file with parsing or validation errors
-adds no records. Re-uploading a valid file adds its records again. The upload limit
-is 10 MB per file.
+range or worksheet name, row, and column. Each valid file is inserted into
+`public.users` in a single transaction. A file with parsing or validation errors,
+or a failed database insert, adds no records. PostgreSQL generates each member's
+`user_id`; Discord IDs are optional. Re-uploading a valid file without Discord
+IDs adds its records again. The upload limit is 10 MB per file.
 
 The first nonempty row must contain these headers, in any order:
 
@@ -86,15 +106,39 @@ family line, and status are text fields. Quote CSV fields containing commas.
 The optional `big` and `littles` columns use the same relationship rules as
 `/update`; the `litters` header is also accepted. Older files without these columns
 get an empty big and littles list.
+The optional `employer` header also accepts `works at` and `company`.
 
 `fileIntakeCommand.js` downloads attachments and calls the shared `fileParser.js`.
-It returns the parsed records and errors to `router.js`, which saves valid records
-through `api/dbs-client.js` and then sends the Discord response. The database client
-currently uses the local JSON test database. Brotherhood's column rules live in
-`services/memberFileSchema.js`.
+It returns parsed records and errors to `router.js`. `services/databaseHandlers.js`
+maps command fields to database column names, validates updates, and passes
+Brotherhood's credentials to the shared scripts. The shared scripts perform all
+SQL queries and transactions. Brotherhood's column rules live in `services/memberFileSchema.js`.
 
-Run the intake tests from the repository root:
+`shared/dbs/crud/select.js` contains parameterized
+SELECT helpers against `public.users`:
+
+- `selectUsersByName(name, username, password)` returns all exact name matches, ignoring case and surrounding spaces.
+- `selectUsersByNameOrNickname(query, username, password)` returns partial name/nickname matches, preferring exact full names.
+- `selectUserById(userId, username, password)` returns one user or `null`.
+- `selectUserByDiscordId(discordId, username, password)` returns one linked user or `null`.
+
+These helpers return raw database rows. They are independent of Brotherhood and
+use the supplied credentials with the shared database location. Each operation
+closes its own connection. `shared/dbs/crud/insert.js` also provides `insertUser`
+and `upsertUser`; see `shared/dbs/README.md` for their arguments and behavior.
+To look up `test user` and print their `user_id`, run this from the repository root:
 
 ```sh
-node --test bots/brotherhood/services/tests/*.unit.js
+node bots/brotherhood/test-scripts/test-user-selection.js
+```
+
+The script loads Brotherhood's credentials, passes them to the SELECT helper,
+and reports a missing or ambiguous name. The helper loads the shared database settings.
+
+Run the Brotherhood and shared database tests from the repository root. Routing
+contract tests use test doubles; PostgreSQL routing tests exercise the real shared
+CRUD scripts with mocked clients:
+
+```sh
+node --test bots/brotherhood/services/tests/*.unit.js shared/dbs/tests/*.unit.js
 ```

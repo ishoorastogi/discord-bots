@@ -1,15 +1,15 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
-const { memberFileSchema, getMemberCategory, normalizeMemberRelationships } = require("../services/memberFileSchema");
+const { memberFileSchema, getMemberCategory, normalizeMemberRelationships } = require("../../memberFileSchema");
 
-const DATABASE_PATH = path.join(__dirname, "../test-db/test-db.json");
 
 function normalizeName(value) {
     return String(value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
 }
 
-function createLocalDatabase(databasePath = DATABASE_PATH) {
+// File-backed fixture for legacy storage and command-behavior tests only.
+function createLocalDatabase(databasePath) {
     let pending = Promise.resolve();
 
     async function readDatabase() {
@@ -224,4 +224,4 @@ function createLocalDatabase(databasePath = DATABASE_PATH) {
     return { addMembers, updateMember, updateMemberFields, findMember, findBrother, deleteMember };
 }
 
-module.exports = { ...createLocalDatabase(), createLocalDatabase };
+module.exports = { createLocalDatabase };

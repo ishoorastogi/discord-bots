@@ -3,10 +3,10 @@ const { test } = require("node:test");
 const ExcelJS = require("exceljs");
 const { parseFile } = require("../../../../shared/utils/fileParser");
 const fileIntakeCommand = require("../commands/fileIntakeCommand");
-const { handleMentionCommand } = require("../commands/handleMentionCommand");
-const { routeResponse } = require("../router");
+const { handleMentionCommand } = require("./helpers/router");
+const { routeResponse } = require("./helpers/router");
 const { memberFileSchema } = require("../memberFileSchema");
-const database = require("../../api/dbs-client");
+const { database } = require("./helpers/router");
 
 const memberHeaders = "name,email,phone number,class,major,grad year,positions held,family line,nicknames,brotherhood status,linkedin link";
 const validMember = "Alice,alice@example.com,+1 (312) 555-1234,Alpha,Math,2028,President,Oak,Al,Active,https://www.linkedin.com/in/alice";

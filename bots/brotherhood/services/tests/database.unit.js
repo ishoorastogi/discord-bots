@@ -3,15 +3,16 @@ const { test } = require("node:test");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
-const database = require("../../api/dbs-client");
-const { routeResponse } = require("../router");
+const { database } = require("./helpers/router");
+const { createLocalDatabase } = require("./helpers/localDatabase");
+const { routeResponse } = require("./helpers/router");
 const stored = record => ({ big: "", littles: [], ...record });
 
 async function fixture(t) {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "brotherhood-db-"));
     t.after(() => fs.rm(directory, { recursive: true, force: true }));
     const file = path.join(directory, "test-db.json");
-    return { directory, file, client: database.createLocalDatabase(file) };
+    return { directory, file, client: createLocalDatabase(file) };
 }
 
 test("local database creates missing files and appends members while preserving existing data", async t => {
@@ -98,13 +99,13 @@ test("router never saves partial rows from a file with validation errors", async
 });
 
 test("router reports database failures without a success confirmation", async t => {
-    t.mock.method(database, "addMembers", async () => { throw new Error("Disk is full"); });
+    t.mock.method(database, "addMembers", async () => { throw new Error("Connection lost"); });
     t.mock.method(console, "error", () => {});
     const replies = [];
     await routeResponse({ reply: async response => replies.push(response.content) }, {
         type: "fileIntake",
         files: [{ fileName: "members.csv", ok: true, sheets: [{ rows: [{ data: { name: "Alice" } }] }] }],
     });
-    assert.match(replies.join("\n"), /Could not save members.csv to the local test database/);
+    assert.match(replies.join("\n"), /Could not save members.csv to the database/);
     assert.doesNotMatch(replies.join("\n"), /successfully/);
 });

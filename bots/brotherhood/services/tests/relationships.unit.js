@@ -4,10 +4,11 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const ExcelJS = require("exceljs");
-const database = require("../../api/dbs-client");
+const { database } = require("./helpers/router");
+const { createLocalDatabase } = require("./helpers/localDatabase");
 const { memberFileSchema, normalizeMemberRelationships } = require("../memberFileSchema");
 const updateCommand = require("../commands/updateCommand");
-const { routeResponse } = require("../router");
+const { routeResponse } = require("./helpers/router");
 const { getUpdateHelp } = require("../updateHelp");
 const { parseFile } = require("../../../../shared/utils/fileParser");
 
@@ -27,7 +28,7 @@ async function fixture(t) {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), "brotherhood-relations-"));
     t.after(() => fs.rm(directory, { recursive: true, force: true }));
     const file = path.join(directory, "test-db.json");
-    return { client: database.createLocalDatabase(file), read: async () => JSON.parse(await fs.readFile(file, "utf8")) };
+    return { client: createLocalDatabase(file), read: async () => JSON.parse(await fs.readFile(file, "utf8")) };
 }
 
 function command(input) {
