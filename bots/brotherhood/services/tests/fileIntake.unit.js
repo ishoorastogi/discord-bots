@@ -167,6 +167,24 @@ test("member schema permits blank optional values and unlisted class or status l
     assert.equal(result.ok, true);
 });
 
+test("LinkedIn placeholders become blank in CSV and XLSX imports", async () => {
+    const values = ["none", " NONE ", "n/a", " N/A ", "", "https://www.linkedin.com/in/alice"];
+    const rows = values.map(value => [...validMember.split(",").slice(0, -1), value]);
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Members");
+    sheet.addRow(memberHeaders.split(","));
+    sheet.addRows(rows);
+    for (const [buffer, name] of [
+        [Buffer.from([memberHeaders, ...rows.map(row => row.join(","))].join("\n")), "members.csv"],
+        [Buffer.from(await workbook.xlsx.writeBuffer()), "members.xlsx"],
+    ]) {
+        const result = await parseFile(buffer, name, { schema: memberFileSchema });
+        assert.equal(result.ok, true);
+        assert.deepEqual(result.sheets[0].rows.map(row => row.data["linkedin link"]),
+            ["", "", "", "", "", values.at(-1)]);
+    }
+});
+
 test("member XLSX validation returns original sheet/row/column coordinates", async () => {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Brothers");
@@ -240,6 +258,34 @@ test("mention command downloads and reports parser errors through the router", a
     assert.match(content, /Line 2: Expected 2 columns, found 1/);
     assert.match(content, /Line 3: Expected 2 columns, found 3/);
     assert.doesNotMatch(content, /successfully/);
+});
+
+test("router reports worksheet, CSV and download failures without saving rejected files", async t => {
+    const save = t.mock.method(database, "addMembers", async () => { throw new Error("Unexpected save"); });
+    const msg = message();
+    await routeResponse(msg, {
+        type: "fileIntake",
+        files: [
+            { fileName: "members.xlsx", ok: false, errors: [{
+                sheet: "Form Responses 1", line: 29, column: 12,
+                message: "LinkedIn link must point to linkedin.com.",
+            }] },
+            { fileName: "members.csv", ok: false, errors: [{
+                line: 2, endLine: 3, message: "Quoted field is not closed.",
+            }] },
+            { fileName: "download.csv", ok: false, errors: [{
+                message: "Could not download the attachment (HTTP 404).",
+            }] },
+        ],
+    });
+    const report = msg.replies.map(reply => reply.content).join("\n");
+    assert.match(report, /Could not import members\.xlsx/);
+    assert.match(report, /Sheet Form Responses 1, Row 29, column 12: LinkedIn link must point to linkedin\.com\./);
+    assert.match(report, /Could not import members\.csv/);
+    assert.match(report, /Lines 2-3: Quoted field is not closed\./);
+    assert.match(report, /Could not import download\.csv/);
+    assert.match(report, /File: Could not download the attachment \(HTTP 404\)\./);
+    assert.equal(save.mock.callCount(), 0);
 });
 
 test("router includes every error across replies within Discord limits and disables mentions", async () => {

@@ -257,6 +257,13 @@ function createRouter(database = createDatabaseHandlers()) {
                         `Could not import ${name}. No changes from this file were saved.`
                     );
                 }
+            } else {
+                lines.push(
+                    `Could not import ${name}. No records from this file were saved.`,
+                    ...(file.errors || []).map(error =>
+                        `${errorLocation(error)}${escapeMarkdown(error.message)}`
+                    ),
+                );
             }
         }
 

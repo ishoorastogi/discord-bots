@@ -2,6 +2,11 @@ function text(value) {
     return String(value ?? "").trim();
 }
 
+function normalizeLinkedIn(value) {
+    const link = text(value);
+    return /^(?:n\/a|none)$/i.test(link) ? "" : link;
+}
+
 function relationshipNames(value) {
     const names = [];
     const seen = new Set();
@@ -160,13 +165,14 @@ const memberFileSchema = [
             "linkedin url",
             "linkedin profile",
         ],
+        normalize: normalizeLinkedIn,
         validate(value) {
-            if (!text(value)) {
+            const link = normalizeLinkedIn(value);
+            if (!link) {
                 return null;
             }
 
             try {
-                const link = text(value);
                 const url = new URL(
                     /^https?:\/\//i.test(link)
                         ? link
